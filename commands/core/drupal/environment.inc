@@ -124,7 +124,12 @@ function drush_module_disable($modules) {
  *   Array of module names
  */
 function drush_module_uninstall($modules) {
-  require_once drush_get_context('DRUSH_DRUPAL_ROOT') . '/includes/install.inc';
+  if (file_exists(drush_get_context('DRUSH_DRUPAL_ROOT') . '/core/includes') {
+    require_once drush_get_context('DRUSH_DRUPAL_ROOT') . '/core/includes/install.inc';
+  }
+  else {
+    require_once drush_get_context('DRUSH_DRUPAL_ROOT') . '/includes/install.inc';
+  }
   drupal_uninstall_modules($modules);
 }
 

@@ -372,6 +372,9 @@ function _core_path_aliases($project = '') {
       if (is_dir($modules_path = conf_path() . '/modules')) {
         $paths['%modules'] = $modules_path;
       }
+      elseif (is_dir($modules_path = conf_path() . '/core/modules')) {
+        $paths['%modules'] = $modules_path;
+      }
       else {
         $paths['%modules'] = 'sites/all/modules';
       }
@@ -796,6 +799,7 @@ function drush_core_find_project_path($target) {
   $theme_suffix = drush_drupal_major_version() >= 6 ? '.info' : '/style.css';
   $masks = array(
     conf_path() . '/modules' => "/^$target\.module$/",
+    conf_path() . '/core/modules' => "/^$target\.module$/",
     'profiles/default/modules' => "/^$target\.module$/", // Too early for variable_get('install_profile', 'default'); Just use default.
     'sites/all/modules' => "/^$target\.module$/", // Add all module paths, even disabled modules.
     conf_path() . '/themes' => "/^$target" . "$theme_suffix/",

@@ -742,7 +742,12 @@ function _drush_bootstrap_drupal_root() {
 
   chdir($drupal_root);
   drush_load_config('drupal');
-  require_once DRUPAL_ROOT . '/' . DRUSH_DRUPAL_BOOTSTRAP;
+  if (file_exists(DRUPAL_ROOT . '/core/' . DRUSH_DRUPAL_BOOTSTRAP)) {
+    require_once DRUPAL_ROOT . '/core/' . DRUSH_DRUPAL_BOOTSTRAP;
+  }
+  else {
+    require_once DRUPAL_ROOT . '/' . DRUSH_DRUPAL_BOOTSTRAP;
+  }
   $version = drush_set_context('DRUSH_DRUPAL_VERSION', drush_drupal_version());
   $major_version = drush_set_context('DRUSH_DRUPAL_MAJOR_VERSION', drush_drupal_major_version());
 
@@ -1178,7 +1183,7 @@ function drush_locate_root($start_path = NULL) {
  *   True if given path seems to be a Drupal root, otherwise FALSE.
  */
 function drush_valid_drupal_root($path) {
-  return !empty($path) && is_dir($path) && file_exists($path . '/' . DRUSH_DRUPAL_BOOTSTRAP);
+  return !empty($path) && is_dir($path) && (file_exists($path . '/' . DRUSH_DRUPAL_BOOTSTRAP) || file_exists($path . '/core/' . DRUSH_DRUPAL_BOOTSTRAP));
 }
 
 /**

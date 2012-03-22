@@ -9,7 +9,12 @@ function drush_core_site_install_version($profile, array $additional_form_option
   }
   
   define('MAINTENANCE_MODE', 'install');
-  require_once DRUPAL_ROOT . '/includes/install.core.inc';
+  if (file_exists(DRUPAL_ROOT . '/core/includes') {
+    require_once DRUPAL_ROOT . '/core/includes/install.core.inc';
+  }
+  else {
+    require_once DRUPAL_ROOT . '/includes/install.core.inc';
+  }
 
   $db_spec = _drush_sql_get_db_spec();
 

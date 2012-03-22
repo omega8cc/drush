@@ -64,7 +64,12 @@ class userCase extends Drush_TestCase {
     // user-password
     $newpass = 'newpass';
     $this->drush('user-password', array($name), $options + array('password' => $newpass));
-    $eval = "require_once DRUPAL_ROOT . '/' . variable_get('password_inc', 'includes/password.inc');";
+    if ($major_version >= 8) {
+      $eval = "require_once DRUPAL_ROOT . '/' . variable_get('password_inc', 'core/includes/password.inc');";
+    }
+    else {
+      $eval = "require_once DRUPAL_ROOT . '/' . variable_get('password_inc', 'includes/password.inc');";
+    }
     $eval .= "\$account = user_load_by_name('example');";
     $eval .= "print (string) user_check_password('$newpass', \$account)";
     $this->drush('php-eval', array($eval), $options);

@@ -579,7 +579,7 @@ function drush_upgrade_download_drupal($target_version, $destination_core) {
     if (drush_get_error()) return FALSE; // Early exit if we see an error.
 
     // Check and see if there is a Drupal site at the target.
-    if (!file_exists($destination_core . '/includes/bootstrap.inc')) {
+    if (!file_exists($destination_core . '/includes/bootstrap.inc') && !file_exists($destination_core . '/core/includes/bootstrap.inc')) {
       return drush_set_error('DRUSH_UPGRADE_NO_DRUPAL', dt('Drupal could not be downloaded to the target directory, @root.  Move existing content out of the way first.', array('@root' => $target_alias['root'])));
     }
   }

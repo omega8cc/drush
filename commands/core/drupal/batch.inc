@@ -121,8 +121,13 @@ function _drush_batch_worker() {
     // If this is the first time we iterate this batch set in the current
     // request, we check if it requires an additional file for functions
     // definitions.
-    if ($set_changed && isset($current_set['file']) && is_file($current_set['file'])) {
-      include_once DRUPAL_ROOT . '/' . $current_set['file'];
+    if ($set_changed && isset($current_set['file']) && (is_file($current_set['file']) || is_file(DRUPAL_ROOT . '/core/' . $current_set['file']))) {
+      if (file_exists(DRUPAL_ROOT . '/core/' . $current_set['file']) {
+        include_once DRUPAL_ROOT . '/core/' . $current_set['file'];
+      }
+      else {
+        include_once DRUPAL_ROOT . '/' . $current_set['file'];
+      }
     }
 
     $task_message = '';
@@ -216,8 +221,13 @@ function _drush_batch_finished() {
   foreach ($batch['sets'] as $batch_set) {
     if (isset($batch_set['finished'])) {
       // Check if the set requires an additional file for function definitions.
-      if (isset($batch_set['file']) && is_file($batch_set['file'])) {
-        include_once DRUPAL_ROOT . '/' . $batch_set['file'];
+      if (isset($batch_set['file']) && (is_file($batch_set['file']) || is_file(DRUPAL_ROOT . '/core/' . $batch_set['file']))) {
+        if (file_exists(DRUPAL_ROOT . '/core/' . $batch_set['file']) {
+          include_once DRUPAL_ROOT . '/core/' . $batch_set['file'];
+        }
+        else {
+          include_once DRUPAL_ROOT . '/' . $batch_set['file'];
+        }
       }
       if (function_exists($batch_set['finished'])) {
         $queue = _batch_queue($batch_set);

@@ -677,7 +677,12 @@ function drush_pm_enable_validate() {
     }
     $modules = array_diff(array_merge($modules, $all_dependencies), pm_module_list());
     // Discard modules which doesn't meet requirements.
-    require_once drush_get_context('DRUSH_DRUPAL_ROOT') . '/includes/install.inc';
+    if (file_exists(drush_get_context('DRUSH_DRUPAL_ROOT') . '/core/includes') {
+      require_once drush_get_context('DRUSH_DRUPAL_ROOT') . '/core/includes/install.inc';
+    }
+    else {
+      require_once drush_get_context('DRUSH_DRUPAL_ROOT') . '/includes/install.inc';
+    }
     foreach ($modules as $key => $module) {
       // Check to see if the module can be installed/enabled (hook_requirements).
       // See @system_modules_submit
@@ -1628,7 +1633,12 @@ function drush_pm_updatecode_postupdate() {
 
   // Notify of pending database updates.
   // Make sure the installation API is available
-  require_once drush_get_context('DRUSH_DRUPAL_ROOT') . '/includes/install.inc';
+  if (file_exists(drush_get_context('DRUSH_DRUPAL_ROOT') . '/core/includes') {
+    require_once drush_get_context('DRUSH_DRUPAL_ROOT') . '/core/includes/install.inc';
+  }
+  else {
+    require_once drush_get_context('DRUSH_DRUPAL_ROOT') . '/includes/install.inc';
+  }
 
   // Load all .install files.
   drupal_load_updates();
