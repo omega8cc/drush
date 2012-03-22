@@ -677,7 +677,7 @@ function drush_pm_enable_validate() {
     }
     $modules = array_diff(array_merge($modules, $all_dependencies), pm_module_list());
     // Discard modules which doesn't meet requirements.
-    if (file_exists(drush_get_context('DRUSH_DRUPAL_ROOT') . '/core/includes') {
+    if (file_exists(drush_get_context('DRUSH_DRUPAL_ROOT') . '/core/includes')) {
       require_once drush_get_context('DRUSH_DRUPAL_ROOT') . '/core/includes/install.inc';
     }
     else {
@@ -1633,7 +1633,7 @@ function drush_pm_updatecode_postupdate() {
 
   // Notify of pending database updates.
   // Make sure the installation API is available
-  if (file_exists(drush_get_context('DRUSH_DRUPAL_ROOT') . '/core/includes') {
+  if (file_exists(drush_get_context('DRUSH_DRUPAL_ROOT') . '/core/includes')) {
     require_once drush_get_context('DRUSH_DRUPAL_ROOT') . '/core/includes/install.inc';
   }
   else {

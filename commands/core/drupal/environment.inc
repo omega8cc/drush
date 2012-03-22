@@ -124,7 +124,7 @@ function drush_module_disable($modules) {
  *   Array of module names
  */
 function drush_module_uninstall($modules) {
-  if (file_exists(drush_get_context('DRUSH_DRUPAL_ROOT') . '/core/includes') {
+  if (file_exists(drush_get_context('DRUSH_DRUPAL_ROOT') . '/core/includes')) {
     require_once drush_get_context('DRUSH_DRUPAL_ROOT') . '/core/includes/install.inc';
   }
   else {
