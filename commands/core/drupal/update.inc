@@ -20,7 +20,7 @@ define('MAINTENANCE_MODE', 'update');
  * for example, update_check_incompatibility() which can prove useful when
  * enabling modules.
  */
-if (file_exists(DRUPAL_ROOT . '/core/includes') {
+if (file_exists(DRUPAL_ROOT . '/core/includes')) {
   require_once DRUPAL_ROOT . '/core/includes/update.inc';
 }
 else {
@@ -152,7 +152,7 @@ function update_main_prepare() {
 
   // We prepare a minimal bootstrap for the update requirements check to avoid
   // reaching the PHP memory limit.
-  if (file_exists(DRUPAL_ROOT . '/core/includes') {
+  if (file_exists(DRUPAL_ROOT . '/core/includes')) {
     require_once DRUPAL_ROOT . '/core/includes/bootstrap.inc';
     require_once DRUPAL_ROOT . '/core/includes/common.inc';
     require_once DRUPAL_ROOT . '/core/includes/file.inc';
@@ -170,14 +170,14 @@ function update_main_prepare() {
   update_prepare_d7_bootstrap();
   drupal_bootstrap(DRUPAL_BOOTSTRAP_SESSION);
 
-  if (file_exists(DRUPAL_ROOT . '/core/includes') {
+  if (file_exists(DRUPAL_ROOT . '/core/includes')) {
     include_once DRUPAL_ROOT . '/core/includes/install.inc';
   }
   else {
     include_once DRUPAL_ROOT . '/includes/install.inc';
   }
 
-  if (file_exists(DRUPAL_ROOT . '/core/modules') {
+  if (file_exists(DRUPAL_ROOT . '/core/modules')) {
     include_once DRUPAL_ROOT . '/core/modules/system/system.install';
   }
   else {
@@ -185,7 +185,7 @@ function update_main_prepare() {
   }
 
   // Load module basics.
-  if (file_exists(DRUPAL_ROOT . '/core/includes') {
+  if (file_exists(DRUPAL_ROOT . '/core/includes')) {
     include_once DRUPAL_ROOT . '/core/includes/module.inc';
   }
   else {
@@ -221,7 +221,7 @@ function update_main_prepare() {
 
   drush_errors_on();
 
-  if (file_exists(DRUPAL_ROOT . '/core/includes') {
+  if (file_exists(DRUPAL_ROOT . '/core/includes')) {
     include_once DRUPAL_ROOT . '/core/includes/batch.inc';
   }
   else {

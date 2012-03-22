@@ -122,7 +122,7 @@ function _drush_batch_worker() {
     // request, we check if it requires an additional file for functions
     // definitions.
     if ($set_changed && isset($current_set['file']) && (is_file($current_set['file']) || is_file(DRUPAL_ROOT . '/core/' . $current_set['file']))) {
-      if (file_exists(DRUPAL_ROOT . '/core/' . $current_set['file']) {
+      if (file_exists(DRUPAL_ROOT . '/core/' . $current_set['file'])) {
         include_once DRUPAL_ROOT . '/core/' . $current_set['file'];
       }
       else {
@@ -222,7 +222,7 @@ function _drush_batch_finished() {
     if (isset($batch_set['finished'])) {
       // Check if the set requires an additional file for function definitions.
       if (isset($batch_set['file']) && (is_file($batch_set['file']) || is_file(DRUPAL_ROOT . '/core/' . $batch_set['file']))) {
-        if (file_exists(DRUPAL_ROOT . '/core/' . $batch_set['file']) {
+        if (file_exists(DRUPAL_ROOT . '/core/' . $batch_set['file'])) {
           include_once DRUPAL_ROOT . '/core/' . $batch_set['file'];
         }
         else {
