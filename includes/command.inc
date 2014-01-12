@@ -1343,7 +1343,7 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
     $phase_max = $phase;
   }
 
-  $check_full_path = realpath(dirname('sites'));
+  $check_full_path = realpath(dirname('modules'));
   if (preg_match("/^\/(data\/all|var\/aegir|data\/disk\/.*\/aegir\/distro)/", $check_full_path)) {
     $whitelist = TRUE;
   }
