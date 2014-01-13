@@ -763,11 +763,6 @@ function _drush_core_config_php_ini_files() {
       $ini_files[] = $drush_ini;
     }
   }
-  foreach (array(drush_server_home() . '/.drush') as $ini_dir) {
-    if (file_exists($ini_dir . "/php.ini")) {
-      $ini_files[] = realpath($ini_dir . "/php.ini");
-    }
-  }
   return $ini_files;
 }
 
