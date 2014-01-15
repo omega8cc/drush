@@ -1433,17 +1433,9 @@ function _drush_add_commandfiles($searchpath, $phase = NULL, $reset = FALSE) {
   static $evaluated = array();
   static $deferred = array();
 
-  $check_full_path = realpath(dirname('modules/node'));
-  if (preg_match("/^\/(data\/all|var\/aegir|data\/disk\/.*\/aegir\/distro)/", $check_full_path)) {
-    $whitelist = TRUE;
-  }
-  else {
-    $whitelist = FALSE;
-  }
-
   $cache =& drush_get_context('DRUSH_COMMAND_FILES', array());
 
-  if (sizeof($searchpath) && $whitelist) {
+  if (sizeof($searchpath)) {
     if (!$reset) {
       // Assemble a cid specific to the bootstrap phase and searchpaths.
       // Bump $cf_version when making a change to a dev version of Drush
