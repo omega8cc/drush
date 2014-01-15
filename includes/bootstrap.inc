@@ -476,9 +476,6 @@ function _drush_bootstrap_drush() {
   // Load a drushrc.php file in the drush.php's directory.
   drush_load_config('drush');
 
-  // Load a drushrc.php file in the $ETC_PREFIX/etc/drush directory.
-  drush_load_config('system');
-
   // Load a drushrc.php file at ~/.drushrc.php.
   drush_load_config('user');
 
