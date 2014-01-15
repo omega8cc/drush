@@ -62,10 +62,10 @@ function drush_error_handler($errno, $message, $filename, $line, $context) {
  */
 function _drush_php_ini_loaded_file_message() {
   if (function_exists('php_ini_loaded_file')) {
-    return dt('Please check your configuration settings in !phpini or in your drush.ini file; see examples/example.drush.ini for details.', array('!phpini' => php_ini_loaded_file()));
+    return dt('Please check your configuration settings in !phpini file; see examples/example.drush.ini for details.', array('!phpini' => php_ini_loaded_file()));
   }
   else {
-    return dt('Please check your configuration settings in your php.ini file or in your drush.ini file; see examples/example.drush.ini for details.');
+    return dt('Please check your configuration settings in your php.ini file; see examples/example.drush.ini for details.');
   }
 }
 
