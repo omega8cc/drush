@@ -296,7 +296,8 @@ function _drush_config_import(StorageComparer $storage_comparer) {
     Drupal::service('config.factory'),
     Drupal::entityManager(),
     Drupal::lock(),
-    Drupal::service('uuid')
+    Drupal::service('uuid'),
+    Drupal::serivce('config.typed')
   );
   if ($config_importer->alreadyImporting()) {
     drush_log('Another request may be synchronizing configuration already.', 'warning');
@@ -338,6 +339,7 @@ function drush_config_edit($config_name = '') {
     }
     else {
       $config_name = $config_names[$choice];
+      $config = Drupal::config($config_name);
     }
   }
 
