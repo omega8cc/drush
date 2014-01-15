@@ -114,9 +114,9 @@ function _drush_bootstrap_and_dispatch() {
     // found either a valid or matching command.
 
     // If no command was found check if it belongs to a disabled module.
-    if (!$command) {
-      $command = drush_command_belongs_to_disabled_module();
-    }
+    //if (!$command) {
+    //  $command = drush_command_belongs_to_disabled_module();
+    //}
 
     // Set errors related to this command.
     $args = implode(' ', drush_get_arguments());
