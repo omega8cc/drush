@@ -67,10 +67,10 @@ function drush_error_handler($errno, $message, $filename, $line, $context) {
  */
 function _drush_php_ini_loaded_file_message() {
   if (function_exists('php_ini_loaded_file')) {
-    return dt('Please check your configuration settings in !phpini or in your drush.ini file; see examples/example.drush.ini for details.', array('!phpini' => php_ini_loaded_file()));
+    return dt('Please check your configuration settings in !phpini file; see examples/example.drush.ini for details.', array('!phpini' => php_ini_loaded_file()));
   }
   else {
-    return dt('Please check your configuration settings in your php.ini file or in your drush.ini file; see examples/example.drush.ini for details.');
+    return dt('Please check your configuration settings in your php.ini file; see examples/example.drush.ini for details.');
   }
 }
 
@@ -93,7 +93,7 @@ function _drush_postmortem() {
  * notify the user that a setting change is needed and abort.
  */
 function _drush_environment_check_php_ini() {
-  $ini_checks = array('safe_mode' => '', 'open_basedir' => '', 'disable_functions' => array('exec', 'system'), 'disable_classes' => '');
+  $ini_checks = array('safe_mode' => '', 'disable_functions' => array('exec', 'system'), 'disable_classes' => '');
 
   // Test to insure that certain php ini restrictions have not been enabled
   $prohibited_list = array();
@@ -828,7 +828,7 @@ function drush_directory_cache($subdir = '') {
   }
   $home = drush_server_home();
   if ($home) {
-    $cache_locations[$home] = '.drush/cache';
+    $cache_locations[$home] = '.tmp/cache';
   }
   $cache_locations[drush_find_tmp()] = 'drush-' . drush_get_username() . '/cache';
   foreach ($cache_locations as $base => $dir) {
