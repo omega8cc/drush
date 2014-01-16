@@ -85,7 +85,7 @@ for conf_dir in "`dirname "$SELF_PATH"`" "$HOME/.drush" ; do
   if [ -n "$MINGW" ] ; then
     conf_dir=`bash -c "cd \"$conf_dir\"; pwd -W"`
   fi
-  if [ -f "$conf_dir/php.ini" ] ; then
+  if [ -f "$conf_dir/php.ini" ] && [ -z "$PHP_INI" ] ; then
     drush_php_ini="$conf_dir/php.ini"
   fi
 done
