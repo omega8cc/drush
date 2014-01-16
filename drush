@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 #
 # This script is a simple wrapper that will run Drush with the most appropriate
 # php executable it can find.
