@@ -1388,9 +1388,9 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
         // only those Drush commandfiles that are associated with
         // enabled modules.
         if ($phase_max < DRUSH_BOOTSTRAP_DRUPAL_FULL) {
-          $searchpath[] = conf_path() . '/modules';
+          //$searchpath[] = conf_path() . '/modules';
           // Add all module paths, even disabled modules. Prefer speed over accuracy.
-          $searchpath[] = 'sites/all/modules';
+          //$searchpath[] = 'sites/all/modules';
           // In D8, we search top level directories as well.
           if (drush_drupal_major_version() >=8) {
             $searchpath[] = 'modules';
@@ -1404,19 +1404,19 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
           if (file_exists($path)) {
             $searchpath[] = $path;
           }
-          elseif (file_exists('sites/all/' . $path)) {
-            $searchpath[] = 'sites/all/' . $path;
-          }
+          //elseif (file_exists('sites/all/' . $path)) {
+          //  $searchpath[] = 'sites/all/' . $path;
+          //}
         }
         else {
           // If install_profile is not available, scan all profiles.
           $searchpath[] = "profiles";
-          $searchpath[] = "sites/all/profiles";
+          //$searchpath[] = "sites/all/profiles";
         }
 
         // TODO: Treat themes like modules and stop unconditionally searching here.
-        $searchpath[] = 'sites/all/themes';
-        $searchpath[] = conf_path() . '/themes';
+        //$searchpath[] = 'sites/all/themes';
+        //$searchpath[] = conf_path() . '/themes';
         // In D8, we search top level directories as well.
         if (drush_drupal_major_version() >=8) {
           $searchpath[] = 'themes';
@@ -1433,7 +1433,10 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
         $ignored_modules = drush_get_option_list('ignored-modules', array());
         foreach (array_diff(module_list(), $ignored_modules) as $module) {
           $filename = drupal_get_filename('module', $module);
-          $searchpath[] = dirname($filename);
+          $check_full_path = realpath(dirname($filename));
+          if (!preg_match("/\/(sites\/all|sites\/)/", $check_full_path)) {
+            $searchpath[] = dirname($filename);
+          }
         }
       }
       break;
