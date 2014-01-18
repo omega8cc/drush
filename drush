@@ -75,7 +75,7 @@ else
   fi
 fi
 
-# Check to see if the user has provided a php.ini file in any conf dir
+# Check to see if the user has provided a php.ini file or drush.ini file in any conf dir
 # Last found wins, so search in reverse priority order
 for conf_dir in "`dirname "$SELF_PATH"`" "$HOME/.drush" ; do
   if [ ! -d "$conf_dir" ] ; then
@@ -87,6 +87,9 @@ for conf_dir in "`dirname "$SELF_PATH"`" "$HOME/.drush" ; do
   fi
   if [ -f "$conf_dir/php.ini" ] && [ -z "$PHP_INI" ] ; then
     drush_php_ini="$conf_dir/php.ini"
+  fi
+  if [ -f "$conf_dir/drush.ini" ] ; then
+    drush_php_override="$conf_dir/drush.ini"
   fi
 done
 # If the PHP_INI environment variable is specified, then tell

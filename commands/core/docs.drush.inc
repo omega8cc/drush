@@ -66,7 +66,7 @@ function docs_drush_command() {
     'callback arguments' => array($docs_dir . '/examples/example.aliases.drushrc.php'),
   );
   $items['docs-ini-files'] = array(
-    'description' => 'php.ini configuration to set PHP values for use with Drush.',
+    'description' => 'php.ini or drush.ini configuration to set PHP values for use with Drush.',
     'hidden' => TRUE,
     'topic' => TRUE,
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
