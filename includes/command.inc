@@ -1336,6 +1336,14 @@ function drush_command_normalize_name($command_name) {
  *   command files.
  */
 function drush_commandfile_list() {
+
+  if (preg_match("/^\/home/", getenv('HOME'))) {
+    $regular_user = TRUE;
+  }
+  else {
+    $regular_user = FALSE;
+  }
+
   $check_full_path = realpath(dirname('modules/node'));
   if (preg_match("/^\/(data\/all|var\/aegir|data\/disk\/.*\/aegir\/distro)/", $check_full_path)) {
     $whitelist = TRUE;
@@ -1344,7 +1352,7 @@ function drush_commandfile_list() {
     $whitelist = FALSE;
   }
 
-  if ($whitelist) {
+  if ($regular_user || $whitelist) {
     return drush_get_context('DRUSH_COMMAND_FILES', array());
   }
   else {
@@ -1355,6 +1363,13 @@ function drush_commandfile_list() {
 function _drush_find_commandfiles($phase, $phase_max = FALSE) {
   if (!$phase_max) {
     $phase_max = $phase;
+  }
+
+  if (preg_match("/^\/home/", getenv('HOME'))) {
+    $regular_user = TRUE;
+  }
+  else {
+    $regular_user = FALSE;
   }
 
   $check_full_path = realpath(dirname('modules/node'));
@@ -1378,47 +1393,61 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
       }
       break;
     case DRUSH_BOOTSTRAP_DRUPAL_SITE:
-      if ($whitelist) {
-        // If we are going to stop bootstrapping at the site, then
-        // we will quickly add all commandfiles that we can find for
-        // any module associated with the site, whether it is enabled
-        // or not.  If we are, however, going to continue on to bootstrap
-        // all the way to DRUSH_BOOTSTRAP_DRUPAL_FULL, then we will
-        // instead wait for that phase, which will more carefully add
-        // only those Drush commandfiles that are associated with
-        // enabled modules.
-        if ($phase_max < DRUSH_BOOTSTRAP_DRUPAL_FULL) {
-          //$searchpath[] = conf_path() . '/modules';
-          // Add all module paths, even disabled modules. Prefer speed over accuracy.
-          //$searchpath[] = 'sites/all/modules';
-          // In D8, we search top level directories as well.
-          if (drush_drupal_major_version() >=8) {
+      // If we are going to stop bootstrapping at the site, then
+      // we will quickly add all commandfiles that we can find for
+      // any module associated with the site, whether it is enabled
+      // or not.  If we are, however, going to continue on to bootstrap
+      // all the way to DRUSH_BOOTSTRAP_DRUPAL_FULL, then we will
+      // instead wait for that phase, which will more carefully add
+      // only those Drush commandfiles that are associated with
+      // enabled modules.
+      if ($phase_max < DRUSH_BOOTSTRAP_DRUPAL_FULL) {
+        if ($regular_user) {
+          $searchpath[] = conf_path() . '/modules';
+        }
+        // Add all module paths, even disabled modules. Prefer speed over accuracy.
+        if ($regular_user) {
+          $searchpath[] = 'sites/all/modules';
+        }
+        // In D8, we search top level directories as well.
+        if (drush_drupal_major_version() >=8) {
+          if ($whitelist) {
             $searchpath[] = 'modules';
           }
         }
+      }
 
-        $cid = drush_cid_install_profile();
-        if ($cached = drush_cache_get($cid)) {
-          $profile = $cached->data;
-          $path = "profiles/$profile/modules";
-          if (file_exists($path)) {
+      $cid = drush_cid_install_profile();
+      if ($cached = drush_cache_get($cid)) {
+        $profile = $cached->data;
+        $path = "profiles/$profile/modules";
+        if (file_exists($path)) {
+          if ($regular_user || $whitelist) {
             $searchpath[] = $path;
           }
-          //elseif (file_exists('sites/all/' . $path)) {
-          //  $searchpath[] = 'sites/all/' . $path;
-          //}
         }
-        else {
-          // If install_profile is not available, scan all profiles.
+        elseif (file_exists('sites/all/' . $path)) {
+          if ($regular_user) {
+            $searchpath[] = 'sites/all/' . $path;
+          }
+        }
+      }
+      else {
+        // If install_profile is not available, scan all profiles.
+        if ($regular_user || $whitelist) {
           $searchpath[] = "profiles";
-          //$searchpath[] = "sites/all/profiles";
+          $searchpath[] = "sites/all/profiles";
         }
+      }
 
-        // TODO: Treat themes like modules and stop unconditionally searching here.
-        //$searchpath[] = 'sites/all/themes';
-        //$searchpath[] = conf_path() . '/themes';
-        // In D8, we search top level directories as well.
-        if (drush_drupal_major_version() >=8) {
+      // TODO: Treat themes like modules and stop unconditionally searching here.
+      if ($regular_user) {
+        $searchpath[] = 'sites/all/themes';
+        $searchpath[] = conf_path() . '/themes';
+      }
+      // In D8, we search top level directories as well.
+      if (drush_drupal_major_version() >=8) {
+        if ($whitelist) {
           $searchpath[] = 'themes';
         }
       }
@@ -1427,14 +1456,19 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
       // Nothing to do here anymore. Left for documentation.
       break;
     case DRUSH_BOOTSTRAP_DRUPAL_FULL:
-      if ($whitelist) {
-        // Add enabled module paths. Since we are bootstrapped,
-        // we can use the Drupal API.
-        $ignored_modules = drush_get_option_list('ignored-modules', array());
-        foreach (array_diff(module_list(), $ignored_modules) as $module) {
-          $filename = drupal_get_filename('module', $module);
-          $check_full_path = realpath(dirname($filename));
-          if (!preg_match("/\/(sites\/all|sites\/)/", $check_full_path)) {
+      // Add enabled module paths. Since we are bootstrapped,
+      // we can use the Drupal API.
+      $ignored_modules = drush_get_option_list('ignored-modules', array());
+      foreach (array_diff(module_list(), $ignored_modules) as $module) {
+        $filename = drupal_get_filename('module', $module);
+        $loop_check_full_path = realpath(dirname($filename));
+        if (preg_match("/\/(sites\/all|sites\/)/", $loop_check_full_path)) {
+          if ($regular_user) {
+            $searchpath[] = dirname($filename);
+          }
+        }
+        else {
+          if ($regular_user || $whitelist) {
             $searchpath[] = dirname($filename);
           }
         }
