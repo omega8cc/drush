@@ -1336,28 +1336,7 @@ function drush_command_normalize_name($command_name) {
  *   command files.
  */
 function drush_commandfile_list() {
-
-  if (preg_match("/^\/home/", getenv('HOME'))) {
-    $regular_user = TRUE;
-  }
-  else {
-    $regular_user = FALSE;
-  }
-
-  $check_full_path = realpath(dirname('modules/node'));
-  if (preg_match("/^\/(data\/all|var\/aegir|data\/disk\/.*\/aegir\/distro)/", $check_full_path)) {
-    $whitelist = TRUE;
-  }
-  else {
-    $whitelist = FALSE;
-  }
-
-  if ($regular_user || $whitelist) {
-    return drush_get_context('DRUSH_COMMAND_FILES', array());
-  }
-  else {
-    return;
-  }
+  return drush_get_context('DRUSH_COMMAND_FILES', array());
 }
 
 function _drush_find_commandfiles($phase, $phase_max = FALSE) {
