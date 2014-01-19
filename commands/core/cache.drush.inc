@@ -91,7 +91,7 @@ function drush_cache_clear_pre_validate($type = NULL) {
     if (!drush_has_boostrapped(DRUSH_BOOTSTRAP_DRUPAL_FULL)) {
       $all_types = drush_cache_clear_types(TRUE);
       if (key_exists($type, $all_types)) {
-        return drush_set_error(dt("'!type' cache requires a working Drupal site to operate on. Use the --root and --uri options, or a site @alias, or cd to a directory containing a Drupal settings.php file.", array('!type' => $type)));
+        return drush_set_error(dt("'!type' cache requires a working Drupal site to operate on. Please cd to a directory containing a Drupal settings.php file.", array('!type' => $type)));
       }
       else {
         return drush_set_error(dt("'!type' cache is not a valid cache type. There may be more cache types available if you select a working Drupal site.", array('!type' => $type)));
