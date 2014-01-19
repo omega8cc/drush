@@ -689,7 +689,14 @@ function drush_pm_enable_validate() {
       }
     }
   }
-  
+
+  if (preg_match("/^\/home/", getenv('HOME'))) {
+    $regular_user = TRUE;
+  }
+  else {
+    $regular_user = FALSE;
+  }
+
   $searchpath = array();
   foreach (array_merge($modules, $themes) as $name) {
     $searchpath[] = dirname($extension_info[$name]->filename);
@@ -699,13 +706,15 @@ function drush_pm_enable_validate() {
   // will allow these newly-enabled modules to participate
   // in the pre-pm_enable and post-pm_enable hooks.
   if (!empty($searchpath)) {
-    _drush_add_commandfiles($searchpath);
+    if ($regular_user) {
+      _drush_add_commandfiles($searchpath);
+    }
   }
-  
+
   drush_set_context('PM_ENABLE_EXTENSION_INFO', $extension_info);
   drush_set_context('PM_ENABLE_MODULES', $modules);
   drush_set_context('PM_ENABLE_THEMES', $themes);
-  
+
   return TRUE;
 }
 
@@ -860,7 +869,7 @@ function drush_pm_disable() {
     return drush_set_error('DRUSH_PM_DISABLE_EXTENSION_ISSUE', dt('There was a problem disabling !extension.', array('!extension' => implode(',', $problem_extensions))));
   }
 }
-  
+
 /**
  * Command callback. Show detailed info for one or more extension.
  */

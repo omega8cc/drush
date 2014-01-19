@@ -469,7 +469,7 @@ function _drush_postmortem() {
  * notify the user that a setting change is needed and abort.
  */
 function _drush_environment_check_php_ini() {
-  $ini_checks = array('safe_mode' => '', 'open_basedir' => '', 'disable_functions' => array('exec', 'system'), 'disable_classes' => '');
+  $ini_checks = array('safe_mode' => '', 'disable_functions' => array('exec', 'system'), 'disable_classes' => '');
 
   // Test to insure that certain php ini restrictions have not been enabled
   $prohibited_list = array();
@@ -627,18 +627,6 @@ function _drush_bootstrap_drush() {
 
   // Load a drushrc.php file in the drush.php's directory.
   drush_load_config('drush');
-
-  // Load a drushrc.php file in the $ETC_PREFIX/etc/drush directory.
-  drush_load_config('system');
-
-  // Load a drushrc.php file at ~/.drushrc.php.
-  drush_load_config('user');
-
-  // Load a drushrc.php file in the ~/.drush directory.
-  drush_load_config('home.drush');
-
-  // Load a custom config specified with the --config option.
-  drush_load_config('custom');
 
   // Process the site alias that specifies which instance
   // of drush (local or remote) this command will operate on.

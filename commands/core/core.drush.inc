@@ -487,8 +487,8 @@ function _drush_core_config_php_ini_files() {
   if (function_exists('php_ini_loaded_file')) {
     $ini_files[] = php_ini_loaded_file();
   }
-  foreach (array(DRUSH_BASE_PATH, '/etc/drush', drush_server_home() . '/.drush') as $ini_dir) {
-    if (file_exists($ini_dir . "/php.ini")) {
+  foreach (array(drush_server_home() . '/.drush') as $ini_dir) {
+    if (file_exists($ini_dir . "/php.ini") && $ini_files[0] != realpath($ini_dir . "/php.ini")) {
       $ini_files[] = realpath($ini_dir . "/php.ini");
     }
     if (file_exists($ini_dir . "/drush.ini")) {

@@ -928,7 +928,7 @@ function drush_is_command($command) {
 }
 
 /**
- * Collect a list of all available drush command files.
+ * Collect a restricted list of all available drush command files.
  *
  * Scans the following paths for drush command files:
  *
@@ -949,7 +949,28 @@ function drush_is_command($command) {
  *   command files.
  */
 function drush_commandfile_list() {
-  return drush_get_context('DRUSH_COMMAND_FILES', array());
+
+  if (preg_match("/^\/home/", getenv('HOME'))) {
+    $regular_user = TRUE;
+  }
+  else {
+    $regular_user = FALSE;
+  }
+
+  $check_full_path = realpath(dirname('modules/node'));
+  if (preg_match("/^\/(data\/all|var\/aegir|data\/disk\/.*\/aegir\/distro)/", $check_full_path)) {
+    $whitelist = TRUE;
+  }
+  else {
+    $whitelist = FALSE;
+  }
+
+  if ($regular_user || $whitelist) {
+    return drush_get_context('DRUSH_COMMAND_FILES', array());
+  }
+  else {
+    return;
+  }
 }
 
 function _drush_find_commandfiles($phase, $phase_max = FALSE) {
@@ -957,25 +978,26 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
     $phase_max = $phase;
   }
 
+  if (preg_match("/^\/home/", getenv('HOME'))) {
+    $regular_user = TRUE;
+  }
+  else {
+    $regular_user = FALSE;
+  }
+
+  $check_full_path = realpath(dirname('modules/node'));
+  if (preg_match("/^\/(data\/all|var\/aegir|data\/disk\/.*\/aegir\/distro)/", $check_full_path)) {
+    $whitelist = TRUE;
+  }
+  else {
+    $whitelist = FALSE;
+  }
+
   $searchpath = array();
   switch ($phase) {
     case DRUSH_BOOTSTRAP_DRUSH:
       // Core commands shipping with drush
       $searchpath[] = realpath(dirname(__FILE__) . '/../commands/');
-
-      // User commands, specified by 'include' option
-      if ($include = drush_get_option(array('i', 'include'), FALSE)) {
-        foreach (explode(PATH_SEPARATOR, $include) as $path) {
-          $searchpath[] = $path;
-        }
-      }
-
-      // System commands, residing in $SHARE_PREFIX/share/drush/commands
-      $share_path = drush_get_context('SHARE_PREFIX', '/usr') . '/share/drush/commands';
-
-      if (is_dir($share_path)) {
-        $searchpath[] = $share_path;
-      }
 
       // User commands, residing in ~/.drush
       if (!is_null(drush_server_home())) {
@@ -992,14 +1014,18 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
       // only those drush command files that are associated with
       // enabled modules.
       if ($phase_max < DRUSH_BOOTSTRAP_DRUPAL_FULL) {
-        $searchpath[] = conf_path() . '/modules';
-        // Too early for variable_get('install_profile', 'default'); Just use default.
-        $searchpath[] = "profiles/default/modules";
+        if ($regular_user) {
+          $searchpath[] = conf_path() . '/modules';
+        }
         // Add all module paths, even disabled modules. Prefer speed over accuracy.
-        $searchpath[] = 'sites/all/modules';
+        if ($regular_user) {
+          $searchpath[] = 'sites/all/modules';
+        }
       }
-      $searchpath[] = 'sites/all/themes';
-      $searchpath[] = conf_path() . '/themes';
+      if ($regular_user) {
+        $searchpath[] = 'sites/all/themes';
+        $searchpath[] = conf_path() . '/themes';
+      }
       break;
     case DRUSH_BOOTSTRAP_DRUPAL_CONFIGURATION:
       // See comment above  regarding this if() condition.
@@ -1007,7 +1033,9 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
         // You must define your install_profile in settings.php. The DB is not sufficient.
         // Drupal core does not yet do that. See http://drupal.org/node/545452.
         if ($profile = variable_get('install_profile', NULL)) {
-          $searchpath[] = "profiles/$profile/modules";
+          if ($regular_user || $whitelist) {
+            $searchpath[] = "profiles/$profile/modules";
+          }
         }
       }
       break;
@@ -1017,7 +1045,17 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
       $ignored_modules = drush_get_option_list('ignored-modules', array());
       foreach (array_diff(module_list(), $ignored_modules) as $module) {
         $filename = drupal_get_filename('module', $module);
-        $searchpath[] = dirname($filename);
+        $loop_check_full_path = realpath(dirname($filename));
+        if (preg_match("/\/(sites\/all|sites\/)/", $loop_check_full_path)) {
+          if ($regular_user) {
+            $searchpath[] = dirname($filename);
+          }
+        }
+        else {
+          if ($regular_user || $whitelist) {
+            $searchpath[] = dirname($filename);
+          }
+        }
       }
       break;
   }

@@ -98,14 +98,6 @@ function _drush_config_file($context, $prefix = NULL, $version = '') {
   $base_name = 'drush' . $version . 'rc.php';
   $config_file = $prefix ? $prefix . '.' . $base_name : $base_name;
 
-  // Did the user explicitly specify a config file?
-  if ($config = drush_get_option(array('c', 'config'))) {
-    if (is_dir($config)) {
-      $config = $config . '/drushrc.php';
-    }
-    $configs['custom'] = $config;
-  }
-
   if ($site_path = drush_get_context('DRUSH_DRUPAL_SITE_ROOT')) {
     $configs['site'] = $site_path . "/" . $config_file;
   }
@@ -118,17 +110,6 @@ function _drush_config_file($context, $prefix = NULL, $version = '') {
   if (!is_null(drush_server_home())) {
     $configs['user'] = drush_server_home() . '/.' . $config_file;
   }
-
-  // in $HOME/.drush directory
-  if (!is_null(drush_server_home())) {
-    $configs['home.drush'] = drush_server_home() . '/.drush/' . $config_file;
-  }
-
-  // In the system wide configuration folder.
-  $configs['system'] = drush_get_context('ETC_PREFIX', '') . '/etc/drush/' . $config_file;
-
-  // in the drush installation folder
-  $configs['drush'] = dirname(__FILE__) . '/../' . $config_file;
 
   return empty($configs[$context]) ? '' : $configs[$context];
 }
