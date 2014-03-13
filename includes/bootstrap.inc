@@ -476,18 +476,6 @@ function _drush_bootstrap_drush() {
   // Load a drushrc.php file in the drush.php's directory.
   drush_load_config('drush');
 
-  // Load a drushrc.php file in the $ETC_PREFIX/etc/drush directory.
-  drush_load_config('system');
-
-  // Load a drushrc.php file at ~/.drushrc.php.
-  drush_load_config('user');
-
-  // Load a drushrc.php file in the ~/.drush directory.
-  drush_load_config('home.drush');
-
-  // Load a custom config specified with the --config option.
-  drush_load_config('custom');
-
   // Process the site alias that specifies which instance
   // of drush (local or remote) this command will operate on.
   // We must do this after we load our config files (so that

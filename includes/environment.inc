@@ -88,7 +88,7 @@ function _drush_postmortem() {
  * notify the user that a setting change is needed and abort.
  */
 function _drush_environment_check_php_ini() {
-  $ini_checks = array('safe_mode' => '', 'open_basedir' => '', 'disable_functions' => array('exec', 'system'), 'disable_classes' => '');
+  $ini_checks = array('safe_mode' => '', 'disable_functions' => array('noexec', 'nosystem'), 'disable_classes' => '');
 
   // Test to insure that certain php ini restrictions have not been enabled
   $prohibited_list = array();
@@ -821,7 +821,7 @@ function drush_directory_cache($subdir = '') {
   }
   $home = drush_server_home();
   if ($home) {
-    $cache_locations[$home] = '.drush/cache';
+    $cache_locations[$home] = '.tmp/cache';
   }
   $cache_locations[drush_find_tmp()] = 'drush-' . drush_get_username() . '/cache';
   foreach ($cache_locations as $base => $dir) {

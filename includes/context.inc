@@ -98,44 +98,16 @@ function _drush_config_file($context, $prefix = NULL, $version = '') {
   $base_name = 'drush' . $version . 'rc.php';
   $config_file = $prefix ? $prefix . '.' . $base_name : $base_name;
 
-  // Did the user explicitly specify a config file?
-  if ($config_list = (array)drush_get_context('DRUSH_CONFIG')) {
-    foreach ($config_list as $config) {
-      if (is_dir($config)) {
-        $config = $config . '/' . $config_file;
-      }
-      $configs['custom'][] = $config;
-    }
-  }
-
   if ($drupal_root = drush_get_context('DRUSH_SELECTED_DRUPAL_ROOT')) {
     $configs['drupal'] = array(
       $drupal_root . '/sites/all/drush/' . $config_file,
-      $drupal_root . '/drush/' . $config_file,
+      $drupal_root . '/' . $config_file,
     );
 
     if ($site_path = $drupal_root . '/' . drush_get_context('DRUSH_SELECTED_DRUPAL_SITE_CONF_PATH')) {
       $configs['site'] = $site_path . "/" . $config_file;
     }
   }
-
-  // in the user home directory
-  $server_home = drush_server_home();
-  if (isset($server_home)) {
-    $configs['user'] = $server_home . '/.' . $config_file;
-  }
-
-  // in $HOME/.drush directory
-  $per_user_config_dir = drush_get_context('DRUSH_PER_USER_CONFIGURATION');
-  if (!empty($per_user_config_dir)) {
-    $configs['home.drush'] = $per_user_config_dir . '/' . $config_file;
-  }
-
-  // In the system wide configuration folder.
-  $configs['system'] = drush_get_context('DRUSH_SITE_WIDE_CONFIGURATION') . '/' . $config_file;
-
-  // in the drush installation folder
-  $configs['drush'] = dirname(__FILE__) . '/../' . $config_file;
 
   return empty($configs[$context]) ? '' : $configs[$context];
 }

@@ -113,11 +113,6 @@ function _drush_bootstrap_and_dispatch() {
     // If we reach this point, command doesn't fit requirements or we have not
     // found either a valid or matching command.
 
-    // If no command was found check if it belongs to a disabled module.
-    if (!$command) {
-      $command = drush_command_belongs_to_disabled_module();
-    }
-
     // Set errors related to this command.
     $args = implode(' ', drush_get_arguments());
     if (isset($command) && is_array($command)) {
