@@ -1382,18 +1382,18 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
       // enabled modules.
       if ($phase_max < DRUSH_BOOTSTRAP_DRUPAL_FULL) {
         if ($regular_user) {
-        $searchpath[] = conf_path() . '/modules';
+          $searchpath[] = conf_path() . '/modules';
         }
         // Add all module paths, even disabled modules. Prefer speed over accuracy.
         if ($regular_user) {
-        $searchpath[] = 'sites/all/modules';
+          $searchpath[] = 'sites/all/modules';
         }
         // In D8, we search top level directories as well.
         if (drush_drupal_major_version() >=8) {
           if ($whitelist) {
-          $searchpath[] = 'modules';
+            $searchpath[] = 'modules';
+          }
         }
-      }
       }
 
       $cid = drush_cid_install_profile();
@@ -1402,33 +1402,33 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
         $path = "profiles/$profile/modules";
         if (file_exists($path)) {
           if ($regular_user || $whitelist) {
-          $searchpath[] = $path;
-        }
+            $searchpath[] = $path;
+          }
         }
         elseif (file_exists('sites/all/' . $path)) {
           if ($regular_user) {
-          $searchpath[] = 'sites/all/' . $path;
+            $searchpath[] = 'sites/all/' . $path;
+          }
         }
-      }
       }
       else {
         // If install_profile is not available, scan all profiles.
         if ($regular_user || $whitelist) {
-        $searchpath[] = "profiles";
-        $searchpath[] = "sites/all/profiles";
-      }
+          $searchpath[] = "profiles";
+          $searchpath[] = "sites/all/profiles";
+        }
       }
 
       // TODO: Treat themes like modules and stop unconditionally searching here.
       if ($regular_user) {
-      $searchpath[] = 'sites/all/themes';
-      $searchpath[] = conf_path() . '/themes';
+        $searchpath[] = 'sites/all/themes';
+        $searchpath[] = conf_path() . '/themes';
       }
       // In D8, we search top level directories as well.
       if (drush_drupal_major_version() >=8) {
         if ($whitelist) {
-        $searchpath[] = 'themes';
-      }
+          $searchpath[] = 'themes';
+        }
       }
       break;
     case DRUSH_BOOTSTRAP_DRUPAL_CONFIGURATION:
@@ -1448,8 +1448,8 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
         }
         else {
           if ($regular_user || $whitelist) {
-        $searchpath[] = dirname($filename);
-      }
+            $searchpath[] = dirname($filename);
+          }
         }
       }
       break;
