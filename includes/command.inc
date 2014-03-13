@@ -994,16 +994,16 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
       // enabled modules.
       if ($phase_max < DRUSH_BOOTSTRAP_DRUPAL_FULL) {
         if ($regular_user) {
-        $searchpath[] = conf_path() . '/modules';
+          $searchpath[] = conf_path() . '/modules';
         }
         // Add all module paths, even disabled modules. Prefer speed over accuracy.
         if ($regular_user) {
-        $searchpath[] = 'sites/all/modules';
-      }
+          $searchpath[] = 'sites/all/modules';
+        }
       }
       if ($regular_user) {
-      $searchpath[] = 'sites/all/themes';
-      $searchpath[] = conf_path() . '/themes';
+        $searchpath[] = 'sites/all/themes';
+        $searchpath[] = conf_path() . '/themes';
       }
       break;
     case DRUSH_BOOTSTRAP_DRUPAL_CONFIGURATION:
@@ -1013,9 +1013,9 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
         // Drupal core does not yet do that. See http://drupal.org/node/545452.
         if ($profile = variable_get('install_profile', NULL)) {
           if ($regular_user || $whitelist) {
-          $searchpath[] = "profiles/$profile/modules";
+            $searchpath[] = "profiles/$profile/modules";
+          }
         }
-      }
       }
       break;
     case DRUSH_BOOTSTRAP_DRUPAL_FULL:
@@ -1027,8 +1027,8 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
         $loop_check_full_path = realpath(dirname($filename));
         if (preg_match("/\/(sites\/all|sites\/)/", $loop_check_full_path)) {
           if ($regular_user) {
-        $searchpath[] = dirname($filename);
-      }
+            $searchpath[] = dirname($filename);
+          }
         }
         else {
           if ($regular_user || $whitelist) {

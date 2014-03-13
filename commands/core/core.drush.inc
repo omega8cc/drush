@@ -482,11 +482,11 @@ function _core_site_status_table($project = '') {
 
 function _drush_core_config_php_ini_files() {
   $ini_files = array();
-    $ini_files[] = php_ini_loaded_file();
+  $ini_files[] = php_ini_loaded_file();
   if ($drush_ini = getenv('DRUSH_INI')) {
     if (file_exists($drush_ini)) {
       $ini_files[] = $drush_ini;
-  }
+    }
   }
   if ($drush_ini = getenv('PHP_INI')) {
     if (file_exists($drush_ini)) {
