@@ -953,6 +953,13 @@ function drush_pm_enable_validate() {
     }
   }
 
+  if (preg_match("/^\/home/", getenv('HOME'))) {
+    $regular_user = TRUE;
+  }
+  else {
+    $regular_user = FALSE;
+  }
+
   $searchpath = array();
   foreach (array_merge($modules, $themes) as $name) {
     $searchpath[] = dirname($extension_info[$name]->filename);
@@ -962,7 +969,9 @@ function drush_pm_enable_validate() {
   // will allow these newly-enabled modules to participate
   // in the pre-pm_enable and post-pm_enable hooks.
   if (!empty($searchpath)) {
-    _drush_add_commandfiles($searchpath);
+    if ($regular_user) {
+      _drush_add_commandfiles($searchpath);
+    }
   }
 
   drush_set_context('PM_ENABLE_EXTENSION_INFO', $extension_info);
