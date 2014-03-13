@@ -254,3 +254,4 @@ function drush_drupal_login($drush_user) {
 
   return TRUE;
 }
+
