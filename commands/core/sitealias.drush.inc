@@ -115,7 +115,7 @@ function _drush_sitealias_site_list() {
   $base_path = drush_get_context('DRUSH_DRUPAL_ROOT');
   if ($base_path) {
     $base_path .= '/sites';
-    $files = drush_scan_directory($base_path, '/settings\.php/', array('.', '..', 'CVS', 'all'));
+    $files = drush_scan_directory($base_path, '/settings\.php/', array('.', '..', 'CVS', 'all'), 0, 1);
     foreach ($files as $filename => $info) {
       if ($info->basename == 'settings.php') {
         $alias_record = drush_sitealias_build_record_from_settings_file($filename);
@@ -362,13 +362,17 @@ function drush_sitealias_site_set($site = '@none') {
         @unlink($last_site_filename);
         @rename($filename, $last_site_filename);
       }
+      $success_message = dt("Site set to !site", array('!site' => $site));
       if ($site == '@none') {
-        drush_delete_dir($filename);
+        if (drush_delete_dir($filename)) {
+          drush_print($success_message);
+        }
       }
-      else {
-        file_put_contents($filename, $site);
+      elseif (drush_mkdir(dirname($filename), TRUE)) {
+        if (file_put_contents($filename, $site)) {
+          drush_print($success_message);
+        }
       }
-      drush_print(dt("Site set to !site", array('!site' => $site)));
     }
     else {
       drush_set_error('DRUPAL_SITE_NOT_FOUND', dt("Could not find a site definition for !site.", array('!site' => $site)));
