@@ -242,9 +242,11 @@ function drush_site_path($path = NULL) {
   else {
     // Move up dir by dir and check each.
     while ($path = _drush_shift_path_up($path)) {
-      if (file_exists($path . '/settings.php')) {
-        $site_path = $path;
-        break;
+      if (preg_match("/(?:distro|static|aegir)/i", $path)) {
+        if (file_exists($path . '/settings.php')) {
+          $site_path = $path;
+          break;
+        }
       }
     }
   }
