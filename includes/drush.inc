@@ -805,7 +805,9 @@ function _drush_download_file($url, $destination, $overwrite = TRUE) {
   if ($use_wget === NULL) {
     $use_wget = drush_shell_exec('wget --version');
   }
-
+  // We force cURL instead of often too old and unreliable Wget.
+  // Otherwise Drush Make tends to fail on older systems.
+  $use_wget = FALSE;
   $destination_tmp = drush_tempnam('download_file');
   if ($use_wget) {
     drush_shell_exec("wget -q --timeout=30 -O %s %s", $destination_tmp, $url);

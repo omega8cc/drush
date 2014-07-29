@@ -85,7 +85,9 @@ function _drush_sync_via_http_download_file($url, $user = FALSE, $password = FAL
   if ($use_wget === NULL) {
     $use_wget = drush_shell_exec('which wget');
   }
-
+  // We force cURL instead of often too old and unreliable Wget.
+  // Otherwise Drush Make tends to fail on older systems.
+  $use_wget = FALSE;
   $destination_tmp = drush_tempnam('download_file');
   if ($use_wget) {
     if ($user && $password) {
