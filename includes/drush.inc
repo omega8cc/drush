@@ -813,7 +813,7 @@ function _drush_download_file($url, $destination, $overwrite = TRUE) {
     drush_shell_exec("wget -q --timeout=30 -O %s %s", $destination_tmp, $url);
   }
   else {
-    drush_shell_exec("curl --fail -s -L --connect-timeout 30 -o %s %s", $destination_tmp, $url);
+    drush_shell_exec("curl --fail -k -s -L --max-redirs 10 --retry 10 --retry-delay 10 --connect-timeout 30 -o %s %s", $destination_tmp, $url);
   }
   if (!drush_file_not_empty($destination_tmp) && $file = @file_get_contents($url)) {
     @file_put_contents($destination_tmp, $file);
