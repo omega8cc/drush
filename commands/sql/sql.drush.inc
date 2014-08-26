@@ -306,7 +306,7 @@ function drush_sql_build_dump_command($table_selection, $db_spec = NULL) {
       $backup = new drush_pm_version_control_backup();
       $backup_dir = $backup->prepare_backup_dir($db_spec['database']);
       if (empty($backup_dir)) {
-        $backup_dir = "/tmp";
+        $backup_dir = "~/.tmp";
       }
       $file = $backup_dir . '/@DATABASE_@DATE.sql';
     }

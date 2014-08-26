@@ -1828,7 +1828,7 @@ function drush_find_tmp() {
       $directories[] = 'c:\\winnt\\temp';
     }
     else {
-      $directories[] = '/tmp';
+      $directories[] = '~/.tmp';
     }
     // This function exists in PHP 5 >= 5.2.1, but drush
     // requires PHP 5 >= 5.2.0, so we check for it.
