@@ -441,7 +441,7 @@ function drush_find_tmp() {
       }
     }
     else {
-      $directories[] = '/tmp';
+      $directories[] = '~/.tmp';
     }
     $directories[] = sys_get_temp_dir();
 

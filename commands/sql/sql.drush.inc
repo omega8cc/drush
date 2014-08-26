@@ -559,7 +559,7 @@ function drush_sql_build_dump_command($table_selection, $db_spec, $file = FALSE)
       $backup = drush_include_engine('version_control', 'backup');
       $backup_dir = $backup->prepare_backup_dir($db_spec['database']);
       if (empty($backup_dir)) {
-        $backup_dir = "/tmp";
+        $backup_dir = "~/.tmp";
       }
       $file = $backup_dir . '/@DATABASE_@DATE.sql';
     }
@@ -1172,9 +1172,9 @@ function drush_sql_dump_file(&$site_record) {
       $result = drush_invoke_process($site_record, 'php-eval', array('return drush_find_tmp();'), array(), array('integrate' => FALSE, 'override-simulated' => TRUE));
       // If the call to invoke process does not work for some reason
       // (e.g. drush not installed on the target machine),
-      // then we will just presume that the tmp dir is '/tmp'.
+      // then we will just presume that the tmp dir is '~/.tmp'.
       if (!$result || !empty($result['error_status']) || empty($result['object'])) {
-        $dump_dir = '/tmp';
+        $dump_dir = '~/.tmp';
       }
       else {
         $dump_dir = $result['object'];
