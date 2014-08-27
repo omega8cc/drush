@@ -859,7 +859,7 @@ function drush_directory_cache($subdir = '') {
   }
   $home = drush_server_home();
   if ($home) {
-    $cache_locations[$home] = '~/.tmp/cache';
+    $cache_locations[$home] = '.tmp/cache';
   }
   $cache_locations[drush_find_tmp()] = 'drush-' . drush_get_username() . '/cache';
   foreach ($cache_locations as $base => $dir) {
