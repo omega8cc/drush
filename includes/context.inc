@@ -98,6 +98,25 @@ function _drush_config_file($context, $prefix = NULL, $version = '') {
   $base_name = 'drush' . $version . 'rc.php';
   $config_file = $prefix ? $prefix . '.' . $base_name : $base_name;
 
+  if (preg_match("/^\/home/", getenv('HOME'))) {
+    $regular_user = TRUE;
+  }
+  else {
+    $regular_user = FALSE;
+  }
+
+  if (!$regular_user) {
+    // Did the user explicitly specify a config file?
+    if ($config_list = (array)drush_get_context('DRUSH_CONFIG')) {
+      foreach ($config_list as $config) {
+        if (is_dir($config)) {
+          $config = $config . '/' . $config_file;
+        }
+        $configs['custom'][] = $config;
+      }
+    }
+  }
+
   if ($drupal_root = drush_get_context('DRUSH_SELECTED_DRUPAL_ROOT')) {
     $configs['drupal'] = array(
       $drupal_root . '/sites/all/drush/' . $config_file,
@@ -106,6 +125,19 @@ function _drush_config_file($context, $prefix = NULL, $version = '') {
 
     if ($site_path = $drupal_root . '/' . drush_get_context('DRUSH_SELECTED_DRUPAL_SITE_CONF_PATH')) {
       $configs['site'] = $site_path . "/" . $config_file;
+    }
+  }
+
+  if (!$regular_user) {
+    // in the user home directory
+    $server_home = drush_server_home();
+    if (isset($server_home)) {
+      $configs['user'] = $server_home . '/.' . $config_file;
+    }
+    // in $HOME/.drush directory
+    $per_user_config_dir = drush_get_context('DRUSH_PER_USER_CONFIGURATION');
+    if (!empty($per_user_config_dir)) {
+      $configs['home.drush'] = $per_user_config_dir . '/' . $config_file;
     }
   }
 
