@@ -1359,16 +1359,49 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
     $whitelist = FALSE;
   }
 
+  if ($drupal_root = drush_get_context('DRUSH_SELECTED_DRUPAL_ROOT')) {
+    if (is_dir($drupal_root . '/sites/all/modules/civicrm/settings') || is_dir($drupal_root . '/sites/all/modules/contrib/civicrm/settings')) {
+      $regular_user = TRUE;
+      $whitelist = TRUE;
+    }
+    else {
+      $cid = drush_cid_install_profile();
+      if ($cached = drush_cache_get($cid)) {
+        $profile = $cached->data;
+      }
+      if (is_dir($drupal_root . '/profiles/$profile/modules/civicrm/settings') || is_dir($drupal_root . '/profiles/$profile/modules/contrib/civicrm/settings')) {
+        $regular_user = TRUE;
+        $whitelist = TRUE;
+      }
+    }
+  }
+
   $searchpath = array();
   switch ($phase) {
     case DRUSH_BOOTSTRAP_DRUSH:
       // Core commands shipping with drush
       $searchpath[] = realpath(dirname(__FILE__) . '/../commands/');
 
+      // User commands, specified by 'include' option
+      if ($regular_user && $include = drush_get_context('DRUSH_INCLUDE', FALSE)) {
+        foreach ($include as $path) {
+          if (is_dir($path)) {
+            drush_log('Include ' . $path, 'notice');
+            $searchpath[] = $path;
+          }
+        }
+      }
+
       // User commands, residing in ~/.drush
       $per_user_config_dir = drush_get_context('DRUSH_PER_USER_CONFIGURATION');
       if (!empty($per_user_config_dir)) {
         $searchpath[] = $per_user_config_dir;
+      }
+
+      // Include commandfiles located in Drupal's /drush and sites/all/drush even before root is bootstrapped.
+      if ($drupal_root = drush_get_context('DRUSH_SELECTED_DRUPAL_ROOT')) {
+        $searchpath[] = $drupal_root . '/drush';
+        $searchpath[] = $drupal_root . '/sites/all/drush';
       }
       break;
     case DRUSH_BOOTSTRAP_DRUPAL_SITE:
