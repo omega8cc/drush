@@ -1398,9 +1398,10 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
         $searchpath[] = $per_user_config_dir;
       }
 
-      // Include commandfiles located in Drupal's /drush and sites/all/drush even before root is bootstrapped.
+      // Include commandfiles located in Drupal's sites/all/drush even before root is bootstrapped.
       if ($drupal_root = drush_get_context('DRUSH_SELECTED_DRUPAL_ROOT')) {
-        $searchpath[] = $drupal_root . '/drush';
+        // BOA restriction: Do not Include commandfiles located in Drupal's /drush.
+        // $searchpath[] = $drupal_root . '/drush';
         $searchpath[] = $drupal_root . '/sites/all/drush';
       }
       break;
