@@ -120,7 +120,8 @@ function _drush_config_file($context, $prefix = NULL, $version = '') {
   if ($drupal_root = drush_get_context('DRUSH_SELECTED_DRUPAL_ROOT')) {
     $configs['drupal'] = array(
       $drupal_root . '/sites/all/drush/' . $config_file,
-      $drupal_root . '/drush/' . $config_file,
+      // BOA restriction: Do not Include commandfiles located in Drupal's /drush.
+      // $drupal_root . '/drush/' . $config_file,
     );
 
     if ($site_path = $drupal_root . '/' . drush_get_context('DRUSH_SELECTED_DRUPAL_SITE_CONF_PATH')) {
