@@ -104,13 +104,6 @@ function drush_queue_list_validate() {
 function drush_queue_run($queue_name) {
   // Get all queues.
   $queues = drush_queue_get_queues();
-
-  // Try to increase the maximum execution time if it is too low.
-  $max_execution_time = ini_get('max_execution_time');
-  if ($max_execution_time > 0 && $max_execution_time < 240 && !ini_get('safe_mode')) {
-    set_time_limit(240);
-  }
-
   $info = $queues[$queue_name];
   $function = $info['cron']['callback'];
   $end = time() + (isset($info['cron']['time']) ? $info['cron']['time'] : 15);
