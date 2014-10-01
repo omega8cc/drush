@@ -99,13 +99,13 @@ function _drush_config_file($context, $prefix = NULL, $version = '') {
   $config_file = $prefix ? $prefix . '.' . $base_name : $base_name;
 
   if (preg_match("/^\/home/", getenv('HOME'))) {
-    $regular_user = TRUE;
+    $context_regular_user = TRUE;
   }
   else {
-    $regular_user = FALSE;
+    $context_regular_user = FALSE;
   }
 
-  if (!$regular_user) {
+  if (!$context_regular_user) {
     // Did the user explicitly specify a config file?
     if ($config_list = (array)drush_get_context('DRUSH_CONFIG')) {
       foreach ($config_list as $config) {
@@ -129,7 +129,7 @@ function _drush_config_file($context, $prefix = NULL, $version = '') {
     }
   }
 
-  if (!$regular_user) {
+  if (!$context_regular_user) {
     // in the user home directory
     $server_home = drush_server_home();
     if (isset($server_home)) {

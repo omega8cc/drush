@@ -965,11 +965,11 @@ function drush_pm_enable_validate() {
     }
   }
 
-  if (preg_match("/^\/home/", getenv('HOME'))) {
-    $regular_user = TRUE;
+  if (preg_match("/^\/home/", getenv('HOME')) || file_exists('/data/conf/vanilla_drush.inc')) {
+    $pm_regular_user = TRUE;
   }
   else {
-    $regular_user = FALSE;
+    $pm_regular_user = FALSE;
   }
 
   $searchpath = array();
@@ -981,7 +981,7 @@ function drush_pm_enable_validate() {
   // will allow these newly-enabled modules to participate
   // in the pre-pm_enable and post-pm_enable hooks.
   if (!empty($searchpath)) {
-    if ($regular_user) {
+    if ($pm_regular_user) {
       _drush_add_commandfiles($searchpath);
     }
   }

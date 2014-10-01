@@ -477,12 +477,12 @@ function _drush_bootstrap_drush() {
   drush_load_config('drush');
 
   if (preg_match("/^\/home/", getenv('HOME'))) {
-    $regular_user = TRUE;
+    $bootstrap_regular_user = TRUE;
   }
   else {
-    $regular_user = FALSE;
+    $bootstrap_regular_user = FALSE;
   }
-  if (!$regular_user) {
+  if (!$bootstrap_regular_user) {
     // Load a drushrc.php file at ~/.drushrc.php.
     drush_load_config('user');
 

@@ -1344,11 +1344,11 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
     $phase_max = $phase;
   }
 
-  if (preg_match("/^\/home/", getenv('HOME'))) {
-    $regular_user = TRUE;
+  if (preg_match("/^\/home/", getenv('HOME')) || file_exists('/data/conf/vanilla_drush.inc')) {
+    $command_regular_user = TRUE;
   }
   else {
-    $regular_user = FALSE;
+    $command_regular_user = FALSE;
   }
 
   $check_full_path = realpath(dirname('modules/node'));
@@ -1361,7 +1361,7 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
 
   if ($drupal_root = drush_get_context('DRUSH_SELECTED_DRUPAL_ROOT')) {
     if (is_dir($drupal_root . '/sites/all/modules/civicrm/settings') || is_dir($drupal_root . '/sites/all/modules/contrib/civicrm/settings')) {
-      $regular_user = TRUE;
+      $command_regular_user = TRUE;
       $whitelist = TRUE;
     }
     else {
@@ -1370,7 +1370,7 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
         $profile = $cached->data;
       }
       if (is_dir($drupal_root . '/profiles/$profile/modules/civicrm/settings') || is_dir($drupal_root . '/profiles/$profile/modules/contrib/civicrm/settings')) {
-        $regular_user = TRUE;
+        $command_regular_user = TRUE;
         $whitelist = TRUE;
       }
     }
@@ -1383,7 +1383,7 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
       $searchpath[] = realpath(dirname(__FILE__) . '/../commands/');
 
       // User commands, specified by 'include' option
-      if ($regular_user && $include = drush_get_context('DRUSH_INCLUDE', FALSE)) {
+      if ($command_regular_user && $include = drush_get_context('DRUSH_INCLUDE', FALSE)) {
         foreach ($include as $path) {
           if (is_dir($path)) {
             drush_log('Include ' . $path, 'notice');
@@ -1415,11 +1415,11 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
       // only those Drush commandfiles that are associated with
       // enabled modules.
       if ($phase_max < DRUSH_BOOTSTRAP_DRUPAL_FULL) {
-        if ($regular_user) {
+        if ($command_regular_user) {
           $searchpath[] = conf_path() . '/modules';
         }
         // Add all module paths, even disabled modules. Prefer speed over accuracy.
-        if ($regular_user) {
+        if ($command_regular_user) {
           $searchpath[] = 'sites/all/modules';
         }
         // In D8, we search top level directories as well.
@@ -1434,13 +1434,13 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
         $cid = drush_cid_install_profile();
         if ($cached = drush_cache_get($cid)) {
           $profile = $cached->data;
-          if ($regular_user || $whitelist) {
+          if ($command_regular_user || $whitelist) {
             $searchpath[] = "profiles/$profile/modules";
           }
         }
         else {
           // If install_profile is not available, scan all profiles.
-          if ($regular_user || $whitelist) {
+          if ($command_regular_user || $whitelist) {
             $searchpath[] = "profiles";
             $searchpath[] = "sites/all/profiles";
           }
@@ -1448,7 +1448,7 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
       }
 
       // TODO: Treat themes like modules and stop unconditionally searching here.
-      if ($regular_user) {
+      if ($command_regular_user) {
         $searchpath[] = 'sites/all/themes';
         $searchpath[] = conf_path() . '/themes';
       }
@@ -1470,12 +1470,12 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
         $filename = drupal_get_filename('module', $module);
         $loop_check_full_path = realpath(dirname($filename));
         if (preg_match("/\/(sites\/all|sites\/)/", $loop_check_full_path)) {
-          if ($regular_user) {
+          if ($command_regular_user) {
             $searchpath[] = dirname($filename);
           }
         }
         else {
-          if ($regular_user || $whitelist) {
+          if ($command_regular_user || $whitelist) {
             $searchpath[] = dirname($filename);
           }
         }
