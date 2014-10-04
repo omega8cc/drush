@@ -880,11 +880,9 @@ function _drush_bootstrap_drupal_configuration() {
          if (is_array($url)) {
            $url = $url['default'];
          }
-         drush_log(dt('DEBUG DRUSH_DB_CREDENTIALS A @url', array('@url' => $url)));
          if (preg_match("/@:3306/", $url)) {
            $url = str_replace('@:3306', '@localhost:3306', $url);
          }
-         drush_log(dt('DEBUG DRUSH_DB_CREDENTIALS B @url', array('@url' => $url)));
          $parts = parse_url($url);
          $parts = !empty($parts) ? $parts : array();
          $parts += array('pass' => '', 'port' => '');
@@ -894,9 +892,15 @@ function _drush_bootstrap_drupal_configuration() {
          $creds['port'] = $parts['port'];
          $creds['pass'] = urldecode($parts['pass']);
          $creds['name'] = trim($parts['path'], '/');
+         drush_log(dt('DEBUG DRUSH_DB_CREDENTIALS port A @port', array('@port' => $creds['port'])));
+         drush_log(dt('DEBUG DRUSH_DB_CREDENTIALS host A @host', array('@url' => $creds['host'])));
+         drush_log(dt('DEBUG DRUSH_DB_CREDENTIALS driver A @driver', array('@driver' => $creds['driver'])));
          $creds['port'] = empty($creds['port']) ? $creds['port'] : '3306';
          $creds['host'] = empty($creds['host']) ? $creds['host'] : 'localhost';
          $creds['driver'] = empty($creds['driver']) ? $creds['driver'] : 'mysqli';
+         drush_log(dt('DEBUG DRUSH_DB_CREDENTIALS port B @port', array('@port' => $creds['port'])));
+         drush_log(dt('DEBUG DRUSH_DB_CREDENTIALS host B @host', array('@url' => $creds['host'])));
+         drush_log(dt('DEBUG DRUSH_DB_CREDENTIALS driver B @driver', array('@driver' => $creds['driver'])));
        }
        break;
      case 7:
