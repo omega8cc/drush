@@ -893,13 +893,13 @@ function _drush_bootstrap_drupal_configuration() {
          $creds['pass'] = urldecode($parts['pass']);
          $creds['name'] = trim($parts['path'], '/');
          drush_log(dt('DEBUG DRUSH_DB_CREDENTIALS port A @port', array('@port' => $creds['port'])));
-         drush_log(dt('DEBUG DRUSH_DB_CREDENTIALS host A @host', array('@url' => $creds['host'])));
+         drush_log(dt('DEBUG DRUSH_DB_CREDENTIALS host A @host', array('@host' => $creds['host'])));
          drush_log(dt('DEBUG DRUSH_DB_CREDENTIALS driver A @driver', array('@driver' => $creds['driver'])));
          $creds['port'] = !empty($creds['port']) ? $creds['port'] : '3306';
          $creds['host'] = !empty($creds['host']) ? $creds['host'] : 'localhost';
          $creds['driver'] = !empty($creds['driver']) ? $creds['driver'] : 'mysqli';
          drush_log(dt('DEBUG DRUSH_DB_CREDENTIALS port B @port', array('@port' => $creds['port'])));
-         drush_log(dt('DEBUG DRUSH_DB_CREDENTIALS host B @host', array('@url' => $creds['host'])));
+         drush_log(dt('DEBUG DRUSH_DB_CREDENTIALS host B @host', array('@host' => $creds['host'])));
          drush_log(dt('DEBUG DRUSH_DB_CREDENTIALS driver B @driver', array('@driver' => $creds['driver'])));
        }
        break;
