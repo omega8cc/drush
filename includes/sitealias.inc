@@ -2018,10 +2018,11 @@ function drush_sitealias_get_envar_filename($filename_prefix = 'drush-drupal-sit
   if (!function_exists('posix_getppid')) {
     return FALSE;
   }
-
-  $ztmp = '~/.tmp'; // Our fallback plan #1.
+  if (preg_match("/^\/home/", getenv('HOME')) || preg_match("/^\/data\/disk/", getenv('HOME')) || preg_match("/^\/var\/aegir/", getenv('HOME'))) {
+    $ztmp = getenv('HOME') . "/.tmp";
+  }
   if (!is_dir($ztmp)) {
-    $ztmp = '/tmp'; // Our fallback plan #2.
+    $ztmp = '/tmp'; // Our fallback plan.
     drush_log(dt("Using /tmp in drush_sitealias_get_envar_filename."), 'info');
   }
   $tmp = getenv('TMPDIR') ? getenv('TMPDIR') : $ztmp;

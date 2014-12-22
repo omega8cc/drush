@@ -145,9 +145,11 @@ function drush_sql_sync($source, $destination) {
     $do_rsync = false;
   }
   else {
-    $tmp = '~/.tmp'; // Our fallback plan #1.
+    if (preg_match("/^\/home/", getenv('HOME')) || preg_match("/^\/data\/disk/", getenv('HOME')) || preg_match("/^\/var\/aegir/", getenv('HOME'))) {
+      $tmp = getenv('HOME') . "/.tmp";
+    }
     if (!is_dir($tmp)) {
-      $tmp = '/tmp'; // Our fallback plan #2.
+      $tmp = '/tmp'; // Our fallback plan.
       drush_log(dt("Using /tmp in drush_sql_sync."), 'info');
     }
     drush_log(dt('Starting to discover temporary files directory on Destination.'), 'ok');
