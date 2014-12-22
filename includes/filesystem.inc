@@ -446,11 +446,13 @@ function drush_find_tmp() {
       }
     }
     else {
-      $ztmp = '~/.tmp'; // Our fallback plan #1.
-      if (!is_dir($ztmp)) {
+      $xtmp = '~/.tmp'; // Our fallback plan #1.
+      $directories[] = $xtmp;
+      if (!is_dir($xtmp)) {
         $ztmp = '/tmp'; // Our fallback plan #2.
+        $directories[] = $ztmp;
+        drush_log(dt("Using /tmp in drush_find_tmp."), 'info');
       }
-      $directories[] = $ztmp;
     }
     $directories[] = sys_get_temp_dir();
 
