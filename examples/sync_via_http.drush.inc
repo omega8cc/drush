@@ -91,7 +91,9 @@ function _drush_sync_via_http_download_file($url, $user = FALSE, $password = FAL
   if ($use_wget === NULL) {
     $use_wget = drush_shell_exec('which wget');
   }
-  $use_wget = FALSE; // force cURL
+  if (!file_exists('/data/conf/vanilla_drush.inc')) {
+    $use_wget = FALSE; // force cURL
+  }
   $destination_tmp = drush_tempnam('download_file');
   if ($use_wget) {
     if ($user && $password) {
@@ -103,10 +105,20 @@ function _drush_sync_via_http_download_file($url, $user = FALSE, $password = FAL
   }
   else {
     if ($user && $password) {
-      drush_shell_exec("curl --tlsv1 --fail -k -s -L --max-redirs 10 --retry 10 --retry-delay 10 --connect-timeout 30 --user %s:%s -o %s %s", $user, $password, $destination_tmp, $url);
+      if (file_exists('/data/conf/vanilla_drush.inc')) {
+        drush_shell_exec("curl -s -L --connect-timeout 30 --user %s:%s -o %s %s", $user, $password, $destination_tmp, $url);
+      }
+      else {
+        drush_shell_exec("curl --tlsv1 --fail -k -s -L --max-redirs 10 --retry 10 --retry-delay 10 --connect-timeout 30 --user %s:%s -o %s %s", $user, $password, $destination_tmp, $url);
+      }
     }
     else {
-      drush_shell_exec("curl --tlsv1 --fail -k -s -L --max-redirs 10 --retry 10 --retry-delay 10 --connect-timeout 30 -o %s %s", $destination_tmp, $url);
+      if (file_exists('/data/conf/vanilla_drush.inc')) {
+        drush_shell_exec("curl -s -L --connect-timeout 30 -o %s %s", $destination_tmp, $url);
+      }
+      else {
+        drush_shell_exec("curl --tlsv1 --fail -k -s -L --max-redirs 10 --retry 10 --retry-delay 10 --connect-timeout 30 -o %s %s", $destination_tmp, $url);
+      }
     }
   }
   if (!drush_get_context('DRUSH_SIMULATE')) {

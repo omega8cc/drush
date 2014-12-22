@@ -105,7 +105,7 @@ function _drush_config_file($context, $prefix = NULL, $version = '') {
     $context_regular_user = FALSE;
   }
 
-  if (!$context_regular_user) {
+  if (!$context_regular_user || file_exists('/data/conf/vanilla_drush.inc')) {
     // Did the user explicitly specify a config file?
     if ($config_list = (array)drush_get_context('DRUSH_CONFIG')) {
       foreach ($config_list as $config) {
@@ -130,7 +130,7 @@ function _drush_config_file($context, $prefix = NULL, $version = '') {
     }
   }
 
-  if (!$context_regular_user) {
+  if (!$context_regular_user || file_exists('/data/conf/vanilla_drush.inc')) {
     // in the user home directory
     $server_home = drush_server_home();
     if (isset($server_home)) {
@@ -144,11 +144,13 @@ function _drush_config_file($context, $prefix = NULL, $version = '') {
     }
   }
 
-  // In the system wide configuration folder.
-  // $configs['system'] = drush_get_context('DRUSH_SITE_WIDE_CONFIGURATION') . '/' . $config_file;
+  if (file_exists('/data/conf/vanilla_drush.inc')) {
+    // In the system wide configuration folder.
+    $configs['system'] = drush_get_context('DRUSH_SITE_WIDE_CONFIGURATION') . '/' . $config_file;
 
-  // in the drush installation folder
-  // $configs['drush'] = dirname(__FILE__) . '/../' . $config_file;
+    // in the drush installation folder
+    $configs['drush'] = dirname(__FILE__) . '/../' . $config_file;
+  }
 
   return empty($configs[$context]) ? '' : $configs[$context];
 }

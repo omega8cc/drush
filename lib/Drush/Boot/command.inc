@@ -13,7 +13,7 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
   }
 
   $check_full_path = realpath(dirname('modules/node'));
-  if (preg_match("/^\/(data\/all|var\/aegir|data\/disk\/.*\/aegir\/distro)/", $check_full_path)) {
+  if (preg_match("/^\/(data\/all|var\/aegir|data\/disk\/.*\/aegir\/distro)/", $check_full_path) || file_exists('/data/conf/vanilla_drush.inc')) {
     $whitelist = TRUE;
   }
   else {
