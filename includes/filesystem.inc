@@ -422,6 +422,13 @@ function drush_save_data_to_temp_file($data, $suffix = NULL) {
 function drush_find_tmp() {
   static $temporary_directory;
 
+  if (preg_match("/^\/home/", getenv('HOME')) || preg_match("/^\/data\/disk/", getenv('HOME')) || preg_match("/^\/var\/aegir/", getenv('HOME'))) {
+    $temporary_directory = getenv('HOME') . "/.tmp";
+  }
+  if (!is_dir($temporary_directory)) {
+    $temporary_directory = FALSE;
+  }
+
   if (!isset($temporary_directory)) {
     $directories = array();
 
