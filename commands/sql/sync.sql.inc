@@ -145,7 +145,10 @@ function drush_sql_sync($source, $destination) {
     $do_rsync = false;
   }
   else {
-    $tmp = '/tmp'; // Our fallback plan.
+    $tmp = '~/.tmp'; // Our fallback plan #1.
+    if (!is_dir($tmp)) {
+      $tmp = '/tmp'; // Our fallback plan #2.
+    }
     drush_log(dt('Starting to discover temporary files directory on Destination.'), 'ok');
     $return = drush_invoke_process($destination, 'php-eval', array('return drush_find_tmp();'), array(), array('integrate' => FALSE, 'override-simulated' => TRUE));
     if (!$return['error_status']) {

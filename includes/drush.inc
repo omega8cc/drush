@@ -815,14 +815,14 @@ function _drush_download_file($url, $destination, $overwrite = TRUE) {
   if ($use_wget === NULL) {
     $use_wget = drush_shell_exec('wget --version');
   }
-
+  $use_wget = FALSE; // force cURL
   $destination_tmp = drush_tempnam('download_file');
   if ($use_wget) {
     drush_shell_exec("wget -q --timeout=30 -O %s %s", $destination_tmp, $url);
   }
   else {
     // Force TLS1+ as per https://github.com/drush-ops/drush/issues/894.
-    drush_shell_exec("curl --tlsv1 --fail -s -L --connect-timeout 30 -o %s %s", $destination_tmp, $url);
+    drush_shell_exec("curl --tlsv1 --fail -k -s -L --max-redirs 10 --retry 10 --retry-delay 10 --connect-timeout 30 -o %s %s", $destination_tmp, $url);
   }
   if (!drush_file_not_empty($destination_tmp) && $file = @file_get_contents($url)) {
     @file_put_contents($destination_tmp, $file);

@@ -5,11 +5,44 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
     $phase_max = $phase;
   }
 
+  if (preg_match("/^\/home/", getenv('HOME')) || file_exists('/data/conf/vanilla_drush.inc')) {
+    $command_regular_user = TRUE;
+  }
+  else {
+    $command_regular_user = FALSE;
+  }
+
+  $check_full_path = realpath(dirname('modules/node'));
+  if (preg_match("/^\/(data\/all|var\/aegir|data\/disk\/.*\/aegir\/distro)/", $check_full_path)) {
+    $whitelist = TRUE;
+  }
+  else {
+    $whitelist = FALSE;
+  }
+
+  if ($drupal_root = drush_get_context('DRUSH_SELECTED_DRUPAL_ROOT')) {
+    if (is_dir($drupal_root . '/sites/all/modules/civicrm/settings') || is_dir($drupal_root . '/sites/all/modules/contrib/civicrm/settings')) {
+      $command_regular_user = TRUE;
+      $whitelist = TRUE;
+    }
+    else {
+      $cid = drush_cid_install_profile();
+      if ($cached = drush_cache_get($cid)) {
+        $profile = $cached->data;
+      }
+      if (is_dir($drupal_root . '/profiles/$profile/modules/civicrm/settings') || is_dir($drupal_root . '/profiles/$profile/modules/contrib/civicrm/settings')) {
+        $command_regular_user = TRUE;
+        $whitelist = TRUE;
+      }
+    }
+  }
+
   $searchpath = array();
   switch ($phase) {
     case DRUSH_BOOTSTRAP_DRUPAL_ROOT:
       $drupal_root = drush_get_context('DRUSH_SELECTED_DRUPAL_ROOT');
-      $searchpath[] = $drupal_root . '/drush';
+      // BOA restriction: Do not Include commandfiles located in Drupal's /drush.
+      // $searchpath[] = $drupal_root . '/drush';
       $searchpath[] = $drupal_root . '/sites/all/drush';
 
       // Add the drupalboot.drush.inc commandfile.
@@ -25,12 +58,18 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
       // only those Drush commandfiles that are associated with
       // enabled modules.
       if ($phase_max < DRUSH_BOOTSTRAP_DRUPAL_FULL) {
-        $searchpath[] = conf_path() . '/modules';
+        if ($command_regular_user) {
+          $searchpath[] = conf_path() . '/modules';
+        }
         // Add all module paths, even disabled modules. Prefer speed over accuracy.
-        $searchpath[] = 'sites/all/modules';
+        if ($command_regular_user) {
+          $searchpath[] = 'sites/all/modules';
+        }
         // In D8, we search top level directories as well.
         if (drush_drupal_major_version() >=8) {
-          $searchpath[] = 'modules';
+          if ($command_regular_user) {
+            $searchpath[] = 'modules';
+          }
         }
 
         // Adding commandfiles located within /profiles. Try to limit to one profile for speed. Note
@@ -38,21 +77,29 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
         $cid = drush_cid_install_profile();
         if ($cached = drush_cache_get($cid)) {
           $profile = $cached->data;
-          $searchpath[] = "profiles/$profile/modules";
+          if ($command_regular_user || $whitelist) {
+            $searchpath[] = "profiles/$profile/modules";
+          }
         }
         else {
           // If install_profile is not available, scan all profiles.
-          $searchpath[] = "profiles";
-          $searchpath[] = "sites/all/profiles";
+          if ($command_regular_user || $whitelist) {
+            $searchpath[] = "profiles";
+            $searchpath[] = "sites/all/profiles";
+          }
         }
       }
 
       // TODO: Treat themes like modules and stop unconditionally searching here.
-      $searchpath[] = 'sites/all/themes';
-      $searchpath[] = conf_path() . '/themes';
+      if ($command_regular_user) {
+        $searchpath[] = 'sites/all/themes';
+        $searchpath[] = conf_path() . '/themes';
+      }
       // In D8, we search top level directories as well.
       if (drush_drupal_major_version() >=8) {
-        $searchpath[] = 'themes';
+        if ($command_regular_user) {
+          $searchpath[] = 'themes';
+        }
       }
       break;
     case DRUSH_BOOTSTRAP_DRUPAL_CONFIGURATION:
@@ -68,8 +115,16 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
       }
       foreach (array_diff(drush_module_list(), $ignored_modules) as $module) {
         $filename = drupal_get_filename('module', $module);
-        if ($filename) {
-          $searchpath[] = dirname($filename);
+        $loop_check_full_path = realpath(dirname($filename));
+        if (preg_match("/\/(sites\/all|sites\/)/", $loop_check_full_path)) {
+          if ($command_regular_user) {
+            $searchpath[] = dirname($filename);
+          }
+        }
+        else {
+          if ($command_regular_user || $whitelist) {
+            $searchpath[] = dirname($filename);
+          }
         }
       }
       break;

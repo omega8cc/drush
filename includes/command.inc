@@ -1337,7 +1337,7 @@ function drush_command_normalize_name($command_name) {
 }
 
 /**
- * Collect a list of all available drush command files.
+ * Collect a restricted list of all available drush command files.
  *
  * Scans the following paths for drush command files:
  *

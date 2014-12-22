@@ -2019,7 +2019,11 @@ function drush_sitealias_get_envar_filename($filename_prefix = 'drush-drupal-sit
     return FALSE;
   }
 
-  $tmp = getenv('TMPDIR') ? getenv('TMPDIR') : '/tmp/';
+  $ztmp = '~/.tmp'; // Our fallback plan #1.
+  if (!is_dir($ztmp)) {
+    $ztmp = '/tmp'; // Our fallback plan #2.
+  }
+  $tmp = getenv('TMPDIR') ? getenv('TMPDIR') : $ztmp;
   return "{$tmp}/drush-env/{$filename_prefix}" . posix_getppid();
 }
 

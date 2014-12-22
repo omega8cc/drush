@@ -151,22 +151,33 @@ function drush_preflight() {
     _drush_preflight_alias_path();
   }
 
+  if (preg_match("/^\/home/", getenv('HOME'))) {
+    $preflight_regular_user = TRUE;
+  }
+  else {
+    $preflight_regular_user = FALSE;
+  }
+
   if (!drush_get_option('local')) {
     // Load a drushrc.php file in the drush.php's directory.
     drush_load_config('drush');
 
     // Load a drushrc.php file in the $ETC_PREFIX/etc/drush directory.
-    drush_load_config('system');
+    // drush_load_config('system');
 
-    // Load a drushrc.php file at ~/.drushrc.php.
-    drush_load_config('user');
+    if (!$preflight_regular_user) {
+      // Load a drushrc.php file at ~/.drushrc.php.
+      drush_load_config('user');
 
-    // Load a drushrc.php file in the ~/.drush directory.
-    drush_load_config('home.drush');
+      // Load a drushrc.php file in the ~/.drush directory.
+      drush_load_config('home.drush');
+    }
   }
 
-  // Load a custom config specified with the --config option.
-  drush_load_config('custom');
+  if (!$preflight_regular_user) {
+    // Load a custom config specified with the --config option.
+    drush_load_config('custom');
+  }
 
   // Determine if --root and --uri have been defined and set constants accordingly.
   _drush_preflight_root();
@@ -325,7 +336,7 @@ function _drush_find_commandfiles_drush() {
   $searchpath[] = realpath(dirname(__FILE__) . '/../commands/');
 
   // User commands, specified by 'include' option
-  if ($include = drush_get_context('DRUSH_INCLUDE', FALSE)) {
+  if ($preflight_regular_user && $include = drush_get_context('DRUSH_INCLUDE', FALSE)) {
     foreach ($include as $path) {
       if (is_dir($path)) {
         drush_log('Include ' . $path, 'notice');
@@ -336,10 +347,10 @@ function _drush_find_commandfiles_drush() {
 
   if (!drush_get_option('local')) {
     // System commands, residing in $SHARE_PREFIX/share/drush/commands
-    $share_path = drush_get_context('DRUSH_SITE_WIDE_COMMANDFILES');
-    if (is_dir($share_path)) {
-      $searchpath[] = $share_path;
-    }
+    // $share_path = drush_get_context('DRUSH_SITE_WIDE_COMMANDFILES');
+    // if (is_dir($share_path)) {
+    //   $searchpath[] = $share_path;
+    // }
 
     // User commands, residing in ~/.drush
     $per_user_config_dir = drush_get_context('DRUSH_PER_USER_CONFIGURATION');
