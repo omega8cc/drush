@@ -361,6 +361,10 @@ function drush_valid_drupal_root($path) {
     if (file_exists($path . '/' . $candidate) && file_exists($path . '/core/misc/drupal.js') && file_exists($path . '/core/core.services.yml')) {
       return $candidate;
     }
+    elseif (file_exists($path . '/' . $candidate) && file_exists($path . '/core/layouts/one_column/one_column.info')) {
+      // BackdropCMS root.
+      return $candidate;
+    }
     // Drupal 7 root.
     $candidate = 'includes/common.inc';
     if (file_exists($path . '/' . $candidate) && file_exists($path . '/misc/drupal.js')) {

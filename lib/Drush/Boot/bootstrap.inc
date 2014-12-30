@@ -470,8 +470,15 @@ function _drush_bootstrap_drupal_root() {
   }
   else {
     if ($major_version <= 7) {
-      define('DRUPAL_ROOT', $drupal_root);
-      $core = DRUPAL_ROOT;
+      if (file_exists($drupal_root . '/core/includes/drupal.inc')) {
+        define('DRUPAL_ROOT', $drupal_root);
+        define('BACKDROP_ROOT', $drupal_root);
+        $core = DRUPAL_ROOT . '/core';
+      }
+      else {
+        define('DRUPAL_ROOT', $drupal_root);
+        $core = DRUPAL_ROOT;
+      }
     }
     else {
       $core = DRUPAL_ROOT . '/core';

@@ -43,6 +43,15 @@ function drush_drupal_version($drupal_root = NULL) {
           $version = Drupal::VERSION;
         }
       }
+      // Try and find BackdropCMS.
+      elseif (file_exists($drupal_root . '/core/includes/drupal.inc')) {
+        // BackdropCMS stores VERSION in drupal.inc, but
+        // we don't want to include it here to avoid issues.
+        if (!defined('VERSION')) {
+          $version = '7.0-dev';
+          drush_log(dt("DEBUG BACKDROP 0 CMS VERSION is !this in drush_drupal_version()", array('!this' => $version)));
+        }
+      }
       else {
         // D7 stores VERSION in bootstrap.inc.
         // D6 and below does it in system.module.
