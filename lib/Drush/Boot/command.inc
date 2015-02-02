@@ -114,16 +114,21 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
         $ignored_modules[] = $cached->data;
       }
       foreach (array_diff(drush_module_list(), $ignored_modules) as $module) {
+        $filepath = drupal_get_path('module', $module);
         $filename = drupal_get_filename('module', $module);
         $loop_check_full_path = realpath(dirname($filename));
         if (preg_match("/\/(sites\/all|sites\/)/", $loop_check_full_path)) {
           if ($command_regular_user) {
-            $searchpath[] = dirname($filename);
+            if ($filepath && $filepath != '/') {
+              $searchpath[] = $filepath;
+            }
           }
         }
         else {
           if ($command_regular_user || $whitelist) {
-            $searchpath[] = dirname($filename);
+            if ($filepath && $filepath != '/') {
+              $searchpath[] = $filepath;
+            }
           }
         }
       }
