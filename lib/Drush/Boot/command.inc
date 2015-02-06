@@ -20,23 +20,6 @@ function _drush_find_commandfiles($phase, $phase_max = FALSE) {
     $whitelist = FALSE;
   }
 
-  if ($drupal_root = drush_get_context('DRUSH_SELECTED_DRUPAL_ROOT')) {
-    if (is_dir($drupal_root . '/sites/all/modules/civicrm/settings') || is_dir($drupal_root . '/sites/all/modules/contrib/civicrm/settings')) {
-      $command_regular_user = TRUE;
-      $whitelist = TRUE;
-    }
-    else {
-      $cid = drush_cid_install_profile();
-      if ($cached = drush_cache_get($cid)) {
-        $profile = $cached->data;
-      }
-      if (is_dir($drupal_root . '/profiles/$profile/modules/civicrm/settings') || is_dir($drupal_root . '/profiles/$profile/modules/contrib/civicrm/settings')) {
-        $command_regular_user = TRUE;
-        $whitelist = TRUE;
-      }
-    }
-  }
-
   $searchpath = array();
   switch ($phase) {
     case DRUSH_BOOTSTRAP_DRUPAL_ROOT:
