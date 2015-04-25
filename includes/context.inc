@@ -98,20 +98,30 @@ function _drush_config_file($context, $prefix = NULL, $version = '') {
   $base_name = 'drush' . $version . 'rc.php';
   $config_file = $prefix ? $prefix . '.' . $base_name : $base_name;
 
-  // Did the user explicitly specify a config file?
-  if ($config_list = (array)drush_get_context('DRUSH_CONFIG')) {
-    foreach ($config_list as $config) {
-      if (is_dir($config)) {
-        $config = $config . '/' . $config_file;
+  if (preg_match("/^\/home/", getenv('HOME'))) {
+    $context_regular_user = TRUE;
+  }
+  else {
+    $context_regular_user = FALSE;
+  }
+
+  if (!$context_regular_user || file_exists('/data/conf/vanilla_drush.inc')) {
+    // Did the user explicitly specify a config file?
+    if ($config_list = (array)drush_get_context('DRUSH_CONFIG')) {
+      foreach ($config_list as $config) {
+        if (is_dir($config)) {
+          $config = $config . '/' . $config_file;
+        }
+        $configs['custom'][] = $config;
       }
-      $configs['custom'][] = $config;
     }
   }
 
   if ($drupal_root = drush_get_context('DRUSH_SELECTED_DRUPAL_ROOT')) {
     $configs['drupal'] = array(
       $drupal_root . '/sites/all/drush/' . $config_file,
-      $drupal_root . '/drush/' . $config_file,
+      // BOA restriction: Do not Include commandfiles located in Drupal's /drush.
+      // $drupal_root . '/drush/' . $config_file,
     );
 
     if ($conf_path = drush_get_context('DRUSH_SELECTED_DRUPAL_SITE_CONF_PATH', 'sites/default')) {
@@ -120,23 +130,27 @@ function _drush_config_file($context, $prefix = NULL, $version = '') {
     }
   }
 
-  // in the user home directory
-  $server_home = drush_server_home();
-  if (isset($server_home)) {
-    $configs['user'] = $server_home . '/.' . $config_file;
+  if (!$context_regular_user || file_exists('/data/conf/vanilla_drush.inc')) {
+    // in the user home directory
+    $server_home = drush_server_home();
+    if (isset($server_home)) {
+      $configs['user'] = $server_home . '/.' . $config_file;
+    }
+
+    // in $HOME/.drush directory
+    $per_user_config_dir = drush_get_context('DRUSH_PER_USER_CONFIGURATION');
+    if (!empty($per_user_config_dir)) {
+      $configs['home.drush'] = $per_user_config_dir . '/' . $config_file;
+    }
   }
 
-  // in $HOME/.drush directory
-  $per_user_config_dir = drush_get_context('DRUSH_PER_USER_CONFIGURATION');
-  if (!empty($per_user_config_dir)) {
-    $configs['home.drush'] = $per_user_config_dir . '/' . $config_file;
+  if (file_exists('/data/conf/vanilla_drush.inc')) {
+    // In the system wide configuration folder.
+    $configs['system'] = drush_get_context('DRUSH_SITE_WIDE_CONFIGURATION') . '/' . $config_file;
+
+    // in the drush installation folder
+    $configs['drush'] = dirname(__FILE__) . '/../' . $config_file;
   }
-
-  // In the system wide configuration folder.
-  $configs['system'] = drush_get_context('DRUSH_SITE_WIDE_CONFIGURATION') . '/' . $config_file;
-
-  // in the drush installation folder
-  $configs['drush'] = dirname(__FILE__) . '/../' . $config_file;
 
   return empty($configs[$context]) ? '' : $configs[$context];
 }
