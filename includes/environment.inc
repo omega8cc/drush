@@ -190,10 +190,12 @@ function drush_site_path($path = NULL) {
     // Move up dir by dir and check each.
     // Stop if we get to a Drupal root.   We don't care
     // if it is DRUSH_SELECTED_DRUPAL_ROOT or some other root.
-    while ($path = _drush_shift_path_up($path) && !drush_valid_root($path)) {
-      if (file_exists($path . '/settings.php')) {
-        $site_path = $path;
-        break;
+    while ($path = _drush_shift_path_up($path) && !drush_valid_drupal_root($path)) {
+      if (preg_match("/(?:distro|static|aegir)/i", $path)) {
+        if (file_exists($path . '/settings.php')) {
+          $site_path = $path;
+          break;
+        }
       }
     }
   }
@@ -212,7 +214,7 @@ function drush_site_path($path = NULL) {
   // Last resort: try from site root
   if (!$site_path) {
     if ($site_root) {
-      if (file_exists($site_root . '/sites/default/settings.php')) {
+      if (file_exists($site_root . '/sites/default/nonono.settings.php')) {
         $site_path = $site_root . '/sites/default';
       }
     }
