@@ -426,6 +426,13 @@ function drush_save_data_to_temp_file($data, $suffix = NULL) {
 function drush_find_tmp() {
   static $temporary_directory;
 
+  if (preg_match("/^\/home/", getenv('HOME')) || preg_match("/^\/data\/disk/", getenv('HOME')) || preg_match("/^\/var\/aegir/", getenv('HOME'))) {
+    $temporary_directory = getenv('HOME') . "/.tmp";
+  }
+  if (!is_dir($temporary_directory)) {
+    $temporary_directory = FALSE;
+  }
+
   if (!isset($temporary_directory)) {
     $directories = array();
 
@@ -450,7 +457,15 @@ function drush_find_tmp() {
       }
     }
     else {
-      $directories[] = '/tmp';
+      if (preg_match("/^\/home/", getenv('HOME')) || preg_match("/^\/data\/disk/", getenv('HOME')) || preg_match("/^\/var\/aegir/", getenv('HOME'))) {
+        $tmp = getenv('HOME') . "/.tmp";
+        $directories[] = $tmp;
+      }
+      if (!is_dir($tmp)) {
+        $tmp = '/tmp'; // Our fallback plan.
+        $directories[] = $tmp;
+        drush_log(dt("Using /tmp in drush_find_tmp."), 'info');
+      }
     }
     $directories[] = sys_get_temp_dir();
 

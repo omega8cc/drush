@@ -2142,10 +2142,15 @@ function drush_sitealias_get_envar_filename($filename_prefix = 'drush-drupal-sit
   if (!function_exists('posix_getppid')) {
     return FALSE;
   }
-
-  $tmp = getenv('TMPDIR') ? getenv('TMPDIR') : '/tmp/';
+  if (preg_match("/^\/home/", getenv('HOME')) || preg_match("/^\/data\/disk/", getenv('HOME')) || preg_match("/^\/var\/aegir/", getenv('HOME'))) {
+    $ztmp = getenv('HOME') . "/.tmp";
+  }
+  if (!is_dir($ztmp)) {
+    $ztmp = '/tmp'; // Our fallback plan.
+    drush_log(dt("Using /tmp in drush_sitealias_get_envar_filename."), 'info');
+  }
+  $tmp = getenv('TMPDIR') ? getenv('TMPDIR') : $ztmp;
   $username = drush_get_username();
-
   return "{$tmp}/drush-env-{$username}/{$filename_prefix}" . posix_getppid();
 }
 
