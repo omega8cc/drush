@@ -406,7 +406,8 @@ function drush_sitealias_alias_path($alias_path_context = NULL) {
   // look for alias files in /drush and /sites/all/drush.
   $drupal_root = drush_get_context('DRUSH_SELECTED_DRUPAL_ROOT');
   if (!empty($drupal_root)) {
-    $site_paths[] = $drupal_root . '/drush';
+    // BOA restriction: Do not Include commandfiles located in Drupal's /drush.
+    // $site_paths[] = $drupal_root . '/drush';
     $site_paths[] = $drupal_root . '/sites/all/drush';
     $uri = drush_get_context('DRUSH_SELECTED_URI');
     if (empty($uri)) {

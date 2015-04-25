@@ -95,7 +95,8 @@ abstract class DrupalBoot extends BaseBoot {
     switch ($phase) {
       case DRUSH_BOOTSTRAP_DRUPAL_ROOT:
         $drupal_root = drush_get_context('DRUSH_SELECTED_DRUPAL_ROOT');
-        $searchpath[] = $drupal_root . '/drush';
+        // BOA restriction: Do not Include commandfiles located in Drupal's /drush.
+        // $searchpath[] = $drupal_root . '/drush';
         $searchpath[] = $drupal_root . '/sites/all/drush';
 
         // Add the drupalboot.drush.inc commandfile.
