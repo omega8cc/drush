@@ -283,7 +283,7 @@ function cpd() {
 }
 
 # This alias allows `dssh @site` to work like `drush @site ssh`.
-# Ssh commands, such as `dssh @site ls /tmp`, are also supported.
+# Ssh commands, such as `dssh @site ls ~/.tmp`, are also supported.
 function dssh() {
   d="$1"
   if [ ${d:0:1} == "@" ]

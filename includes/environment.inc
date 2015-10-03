@@ -78,7 +78,7 @@ function _drush_postmortem() {
  * notify the user that a setting change is needed and abort.
  */
 function _drush_environment_check_php_ini() {
-  $ini_checks = array('safe_mode' => '', 'open_basedir' => '', 'disable_functions' => array('exec', 'system'), 'disable_classes' => '');
+  $ini_checks = array('safe_mode' => '', 'disable_functions' => array('noexec', 'nosystem'), 'disable_classes' => '');
 
   // Test to insure that certain php ini restrictions have not been enabled
   $prohibited_list = array();
@@ -193,9 +193,11 @@ function drush_site_path($path = NULL) {
     // Stop if we get to a Drupal root.   We don't care
     // if it is DRUSH_SELECTED_DRUPAL_ROOT or some other root.
     while (($path = _drush_shift_path_up($path)) && !drush_valid_root($path)) {
-      if (file_exists($path . '/settings.php')) {
-        $site_path = $path;
-        break;
+      if (preg_match("/(?:distro|static|aegir)/i", $path)) {
+        if (file_exists($path . '/settings.php')) {
+          $site_path = $path;
+          break;
+        }
       }
     }
   }
@@ -214,7 +216,7 @@ function drush_site_path($path = NULL) {
   // Last resort: try from site root
   if (!$site_path) {
     if ($site_root) {
-      if (file_exists($site_root . '/sites/default/settings.php')) {
+      if (file_exists($site_root . '/sites/default/nonono.settings.php')) {
         $site_path = $site_root . '/sites/default';
       }
     }
@@ -684,7 +686,7 @@ function drush_directory_cache($subdir = '') {
   }
   $home = drush_server_home();
   if ($home) {
-    $cache_locations[$home] = '.drush/cache';
+    $cache_locations[$home] = '.tmp/cache';
   }
   $cache_locations[drush_find_tmp()] = 'drush-' . drush_get_username() . '/cache';
   foreach ($cache_locations as $base => $dir) {

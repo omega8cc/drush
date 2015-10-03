@@ -406,7 +406,8 @@ function drush_sitealias_alias_path($alias_path_context = NULL) {
   // look for alias files in /drush and /sites/all/drush.
   $drupal_root = drush_get_context('DRUSH_SELECTED_DRUPAL_ROOT');
   if (!empty($drupal_root)) {
-    $site_paths[] = drush_sitealias_alias_base_directory($drupal_root . '/drush');
+    // $site_paths[] = drush_sitealias_alias_base_directory($drupal_root . '/drush');
+    // BOA restriction: Use only Aegir managed in sites/all/drush
     $site_paths[] = drush_sitealias_alias_base_directory($drupal_root . '/sites/all/drush');
     $uri = drush_get_context('DRUSH_SELECTED_URI');
     if (empty($uri)) {
@@ -2159,10 +2160,15 @@ function drush_sitealias_get_envar_filename($filename_prefix = 'drush-drupal-sit
   if (!function_exists('posix_getppid')) {
     return FALSE;
   }
-
-  $tmp = getenv('TMPDIR') ? getenv('TMPDIR') : '/tmp/';
+  if (preg_match("/^\/home/", getenv('HOME')) || preg_match("/^\/data\/disk/", getenv('HOME')) || preg_match("/^\/var\/aegir/", getenv('HOME'))) {
+    $ztmp = getenv('HOME') . "/.tmp";
+  }
+  if (!is_dir($ztmp)) {
+    $ztmp = '/tmp'; // Our fallback plan.
+    drush_log(dt("Using /tmp in drush_sitealias_get_envar_filename."), 'info');
+  }
+  $tmp = getenv('TMPDIR') ? getenv('TMPDIR') : $ztmp;
   $username = drush_get_username();
-
   return "{$tmp}/drush-env-{$username}/{$filename_prefix}" . posix_getppid();
 }
 
