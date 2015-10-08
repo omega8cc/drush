@@ -406,6 +406,7 @@ function drush_sitealias_alias_path($alias_path_context = NULL) {
   // look for alias files in /drush and /sites/all/drush.
   $drupal_root = drush_get_context('DRUSH_SELECTED_DRUPAL_ROOT');
   if (!empty($drupal_root)) {
+    // $site_paths[] = drush_sitealias_alias_base_directory($drupal_root . '/../drush');
     // $site_paths[] = drush_sitealias_alias_base_directory($drupal_root . '/drush');
     // BOA restriction: Use only Aegir managed in sites/all/drush
     $site_paths[] = drush_sitealias_alias_base_directory($drupal_root . '/sites/all/drush');
