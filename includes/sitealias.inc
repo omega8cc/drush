@@ -632,7 +632,8 @@ function _drush_sitealias_find_alias_files($aliasname = NULL, $alias_path_contex
 
   // Search each path in turn.
   foreach ($alias_path as $path) {
-    if (preg_match("/(?:(\/var\/aegir\/\.drush)|(\/data\/disk\/.*\/\.drush)|(\/sites\/all\/drush))/i", $path)) {
+    if (preg_match("/(?:(\/var\/aegir\/\.drush)|(\/data\/disk\/.*\/\.drush)|(\/sites\/all\/drush))/i", $path) &&
+      !preg_match("/^\/sites\/all\/drush)/i", $path)) {
       // Find all of the matching files in this location
       foreach ($alias_files as $file_pattern_to_search_for) {
         if (!preg_match("/self\\\./i", $file_pattern_to_search_for)) {
