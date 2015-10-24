@@ -425,7 +425,7 @@ function drush_sitealias_alias_path($alias_path_context = NULL) {
 }
 
 /**
- * If there is a directory 'aliases' in the specified search location,
+ * If there is a directory 'site-aliases' in the specified search location,
  * then search ONLY in that directory for aliases.  Otherwise, search
  * anywhere inside the specified directory for aliases.
  */
