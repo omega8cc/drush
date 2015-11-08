@@ -905,7 +905,7 @@ function drush_shift() {
  */
 function drush_adjust_args_if_shebang_script(&$args) {
   if (drush_has_bash()) {
-    // The drush script may add --php or --php-options at the
+    // The drush.launcher script may add --php or --php-options at the
     // head of the argument list; skip past those.
     $base_arg_number = 1;
     while (substr($args[$base_arg_number], 0, 5) == '--php') {
@@ -1411,7 +1411,7 @@ function _drush_add_commandfiles($searchpath, $phase = NULL, $reset = FALSE) {
       // Assemble a cid specific to the bootstrap phase and searchpaths.
       // Bump $cf_version when making a change to a dev version of Drush
       // that invalidates the commandfile cache.
-      $cf_version = 5;
+      $cf_version = 6;
       $cid = drush_get_cid('commandfiles-' . $phase, array(), array_merge($searchpath, array($cf_version)));
       $command_cache = drush_cache_get($cid);
       if (isset($command_cache->data)) {
@@ -1458,8 +1458,9 @@ function _drush_add_commandfiles($searchpath, $phase = NULL, $reset = FALSE) {
       // Only try to require if the file exists. If not, a file from the
       // command file cache may not be available anymore, in which case
       // we rebuild the cache for this phase.
-      if ($filepath = realpath($filename)) {
-        $load_command = commandfiles_cache()->add($filepath);
+      if (file_exists($filename)) {
+        // Avoid realpath() here as Drush commandfiles can have phar:// locations.
+        $load_command = commandfiles_cache()->add($filename);
         if ($load_command) {
           $needs_sort = TRUE;
         }
