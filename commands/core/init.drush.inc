@@ -20,6 +20,7 @@ function init_drush_command() {
     'global-options' => array('editor', 'bg'),
     'options' => array(
       'edit' => 'Open the new config file in an editor.',
+      'add-path' => "Always add Drush to the \$PATH in the user's .bashrc file, even if it is already in the \$PATH. Use --no-add-path to skip updating .bashrc with the Drush \$PATH. Default is to update .bashrc only if Drush is not already in the \$PATH.",
     ),
     'examples' => array(
       'drush core-init --edit' => 'Enrich Bash and open drush config file in editor.',
@@ -37,9 +38,11 @@ function drush_init_core_init() {
   $drush_config_dir = $home . "/.drush";
   $drush_config_file = $drush_config_dir . "/drushrc.php";
   $drush_bashrc = $drush_config_dir . "/drush.bashrc";
+  $drush_prompt = $drush_config_dir . "/drush.prompt.sh";
   $examples_dir = DRUSH_BASE_PATH . "/examples";
   $example_configuration = $examples_dir . "/example.drushrc.php";
   $example_bashrc = $examples_dir . "/example.bashrc";
+  $example_prompt = $examples_dir . "/example.prompt.sh";
   $bashrc_additions = array();
 
   // Create a ~/.drush directory if it does not yet exist
@@ -51,7 +54,7 @@ function drush_init_core_init() {
   // example Drush configuration file here
   if (!is_file($drush_config_file)) {
     @copy($example_configuration, $drush_config_file);
-    drush_log(dt("Copied example Drush configuration file to !path", array('!path' => $drush_config_file)), 'ok');
+    drush_log(dt("Copied example Drush configuration file to !path.", array('!path' => $drush_config_file)), 'ok');
   }
 
   // If there is no ~/.drush/drush.bashrc file, then copy
@@ -59,8 +62,17 @@ function drush_init_core_init() {
   if (!is_file($drush_bashrc)) {
     @copy($example_bashrc, $drush_bashrc);
     $pattern = basename($drush_bashrc);
-    $bashrc_additions["%$pattern%"] = "# Include Drush bash customizations\n. $drush_bashrc\n\n";
-    drush_log(dt("Copied example Drush bash configuration file to !path", array('!path' => $drush_bashrc)), 'ok');
+    $bashrc_additions["%$pattern%"] = "# Include Drush bash customizations.\n. $drush_bashrc\n\n";
+    drush_log(dt("Copied example Drush bash configuration file to !path.", array('!path' => $drush_bashrc)), 'ok');
+  }
+
+  // If there is no ~/.drush/drush.prompt.sh file, then copy
+  // the example prompt.sh file here
+  if (!is_file($drush_prompt)) {
+    @copy($example_prompt, $drush_prompt);
+    $pattern = basename($drush_prompt);
+    $bashrc_additions["%$pattern%"] = "# Include Drush prompt customizations.\n. $drush_prompt\n\n";
+    drush_log(dt("Copied example Drush prompt file to !path.", array('!path' => $drush_prompt)), 'ok');
   }
 
   // Decide whether we want to add our Bash commands to
@@ -69,11 +81,12 @@ function drush_init_core_init() {
 
   // If Drush is not in the $PATH, then figure out which
   // path to add so that Drush can be found globally.
-  if (!drush_which("drush")) {
-    $drush_path = drush_find_path_to_drush();
-    $drush_path = preg_replace("%^$home/%", '$HOME/', $drush_path);
+  $add_path = drush_get_option('add-path', NULL);
+  if ((!drush_which("drush") || $add_path) && ($add_path !== FALSE)) {
+    $drush_path = drush_find_path_to_drush($home);
+    $drush_path = preg_replace("%^" . preg_quote($home) . "/%", '$HOME/', $drush_path);
 
-    $bashrc_additions["%$drush_path%"] = "# Path to Drush, added by 'drush init'\n\$PATH=\$PATH:$drush_path\n\n";
+    $bashrc_additions["%$drush_path%"] = "# Path to Drush, added by 'drush init'.\nexport \$PATH=\"\$PATH:$drush_path\"\n\n";
   }
 
   // Modify the user's bashrc file, adding our customizations.
@@ -126,5 +139,5 @@ function drush_find_path_to_drush($home) {
   }
 
   // Fallback is to use the directory that Drush is in.
-  return dirname(DRUSH_BASE_PATH);
+  return DRUSH_BASE_PATH;
 }
