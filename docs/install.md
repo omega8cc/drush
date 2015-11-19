@@ -1,8 +1,8 @@
 Install/Upgrade a global Drush
 ---------------
 ```bash    
-# Download latest stable release manually or use code below. See github.com/drush-ops/drush/releases.
-wget https://github.com/drush-ops/drush/releases/download/8.0.0-rc3/drush.phar
+# Download latest stable release using the code below or browse to github.com/drush-ops/drush/releases.
+wget http://files.drush.org/drush.phar
 
 # Test your install.
 php drush.phar core-status
@@ -16,9 +16,9 @@ drush init
 ```
     
 * MAMP users, and anyone wishing to launch a non-default PHP, needs to [edit ~/.bashrc so that the right PHP is in your $PATH](http://stackoverflow.com/questions/4145667/how-to-override-the-path-of-php-to-use-the-mamp-path/10653443#10653443).
-* We have documented [alternative ways to install](docs/install-alternative.md), including [Windows](docs/install-alternative.md#windows).
+* We have documented [alternative ways to install](http://docs.drush.org/en/master/install-alternative/), including [Windows](http://docs.drush.org/en/master/install-alternative/#windows).
 * If you need to pass custom php.ini values, run `php -d foo=bar drush.phar --php-options=foo=bar`
-* Your shell now has [useful bash aliases and tab completion for command names, site aliases, options, and arguments.](https://raw.githubusercontent.com/drush-ops/drush/master/examples/example.bashrc).
+* Your shell now has [useful bash aliases and tab completion for command names, site aliases, options, and arguments](https://raw.githubusercontent.com/drush-ops/drush/master/examples/example.bashrc).
 * A [drushrc.php](https://raw.githubusercontent.com/drush-ops/drush/master/examples/example.drushrc.php) has been copied to ~/.drush above. Customize it to save typing and standardize options for commands.
 * Upgrade using this same procedure.
 
@@ -32,8 +32,8 @@ In addition to the global Drush, it is recommended that Drupal 8 sites are [buil
 
 Drupal Compatibility
 -----------------
-Drush Version | Branch  | PHP | Compatible Drupal versions | Code Status
-------------- | ------  | --- | -------------------------- | -----------
+Drush Version | Drush Branch  | PHP | Compatible Drupal versions | Code Status
+------------- | ---------     | --- | -------------------------- | -----------
 Drush 8       | [master](https://travis-ci.org/drush-ops/drush)  | 5.4.5+ | D6, D7, D8                 | <img src="https://travis-ci.org/drush-ops/drush.svg?branch=master">
 Drush 7       | [7.x](https://travis-ci.org/drush-ops/drush) | 5.3.0+ | D6, D7                     | <img src="https://travis-ci.org/drush-ops/drush.svg?branch=7.x">
 Drush 6       | [6.x](https://travis-ci.org/drush-ops/drush) | 5.3.0+ | D6, D7                     | <img src="https://travis-ci.org/drush-ops/drush.svg?branch=6.x">

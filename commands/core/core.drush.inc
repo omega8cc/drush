@@ -715,6 +715,14 @@ function drush_core_config_load($headers = TRUE) {
       $php_header = array('phpini' => '-- PHP ini files --');
     }
   }
+
+  $bash = _drush_core_config_bash_files();
+  if (!empty($bash)) {
+    if ($headers) {
+      $bash_header = array('bash' => '-- Bash files --');
+    }
+  }
+
   drush_sitealias_load_all();
   if ($rcs = drush_get_context_options('context-path', TRUE)) {
     if ($headers) {
@@ -736,7 +744,7 @@ function drush_core_config_load($headers = TRUE) {
       $drupal_header = array('drupal' => '-- Drupal --');
     }
   }
-  return array_merge($php_header, $php, $rcs_header, $rcs, $aliases_header, $aliases, $drupal_header, $drupal);
+  return array_merge($php_header, $php, $bash_header, $bash, $rcs_header, $rcs, $aliases_header, $aliases, $drupal_header, $drupal);
 }
 
 function _drush_core_config_php_ini_files() {
@@ -762,6 +770,19 @@ function _drush_core_config_php_ini_files() {
     }
   }
   return $ini_files;
+}
+
+function _drush_core_config_bash_files() {
+  $bash_files = array();
+  $home = drush_server_home();
+  if ($bashrc = drush_init_find_bashrc($home)) {
+    $bash_files[] = $bashrc;
+  }
+  $prompt = $home . '/.drush/drush.prompt.sh';
+  if (file_exists($prompt)) {
+    $bash_files[] = $prompt;
+  }
+  return $bash_files;
 }
 
 /**
@@ -905,7 +926,7 @@ function drush_core_quick_drupal() {
     }
     if (!empty($makefile)) {
       // Invoke 'drush make $makefile'.
-      $result = drush_invoke_process('@none', 'make', array($makefile, $root));
+      $result = drush_invoke_process('@none', 'make', array($makefile, $root), array('core-quick-drupal' => TRUE));
       if ($result['error_status'] != 0) {
         return drush_set_error('DRUSH_QD_MAKE', 'Could not make; aborting.');
       }
