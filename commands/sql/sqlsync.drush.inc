@@ -236,7 +236,15 @@ function drush_sqlsync_sql_sync($source, $destination) {
     $do_rsync = FALSE;
   }
   else {
-    $tmp = '/tmp'; // Our fallback plan.
+    if (preg_match("/^\/home/", getenv('HOME')) ||
+      preg_match("/^\/data\/disk/", getenv('HOME')) ||
+      preg_match("/^\/var\/aegir/", getenv('HOME'))) {
+      $tmp = getenv('HOME') . "/.tmp";
+    }
+    if (!is_dir($tmp)) {
+      $tmp = '/tmp'; // Our fallback plan.
+      drush_log(dt("Using /tmp in drush_sql_sync."), LogLevel::OK);
+    }
     drush_log(dt('Starting to discover temporary files directory on Destination.'), LogLevel::OK);
     $return = drush_invoke_process($destination, 'core-status', array(), array(), array('integrate' => FALSE, 'override-simulated' => TRUE));
     if (!$return['error_status'] && isset($return['object']['drush-temp'])) {
