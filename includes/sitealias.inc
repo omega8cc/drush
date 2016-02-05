@@ -321,10 +321,11 @@ function _drush_sitealias_get_record($alias, $alias_context = NULL) {
 
   if (!empty($alias_record)) {
     if (!isset($alias_record['remote']) && !isset($alias_record['#loaded-config'])) {
-      if (array_key_exists('root', $alias_record)) {
-        drush_sitealias_add_to_alias_path($alias_record['root'] . '/drush');
-        drush_sitealias_add_to_alias_path($alias_record['root'] . '/sites/all/drush');
-      }
+      // BOA restriction: Do not Include commandfiles located in Drupal's /drush.
+      //if (array_key_exists('root', $alias_record)) {
+      //  drush_sitealias_add_to_alias_path($alias_record['root'] . '/drush');
+      //  drush_sitealias_add_to_alias_path($alias_record['root'] . '/sites/all/drush');
+      //}
       // TODO: We should probably remove this feature, and put it back
       // in, but in different places (e.g. site selection, sql-sync + rsync
       // parameters, etc.)
@@ -405,8 +406,9 @@ function drush_sitealias_alias_path($alias_path_context = NULL) {
   // look for alias files in /drush and /sites/all/drush.
   $drupal_root = drush_get_context('DRUSH_SELECTED_DRUPAL_ROOT');
   if (!empty($drupal_root)) {
-    $site_paths[] = drush_sitealias_alias_base_directory($drupal_root . '/../drush');
-    $site_paths[] = drush_sitealias_alias_base_directory($drupal_root . '/drush');
+    // $site_paths[] = drush_sitealias_alias_base_directory($drupal_root . '/../drush');
+    // $site_paths[] = drush_sitealias_alias_base_directory($drupal_root . '/drush');
+    // BOA restriction: Use only Aegir managed in sites/all/drush
     $site_paths[] = drush_sitealias_alias_base_directory($drupal_root . '/sites/all/drush');
     $uri = drush_get_context('DRUSH_SELECTED_URI');
     if (empty($uri)) {
@@ -617,7 +619,7 @@ function _drush_sitealias_find_alias_files($aliasname = NULL, $alias_path_contex
   // any folder in the alias path.  The directory scan
   // is not deep, though; only files immediately in the
   // search path are considered.
-  $alias_files = array('/.*aliases\.drush(' . DRUSH_MAJOR_VERSION . '|)rc\.php$/');
+  //$alias_files = array('/.*aliases\.drush(' . DRUSH_MAJOR_VERSION . '|)rc\.php$/');
   if ($aliasname == NULL) {
     $alias_files[] = '/.*\.alias\.drush(' . DRUSH_MAJOR_VERSION . '|)rc\.php$/';
   }
@@ -630,10 +632,14 @@ function _drush_sitealias_find_alias_files($aliasname = NULL, $alias_path_contex
 
   // Search each path in turn.
   foreach ($alias_path as $path) {
-    // Find all of the matching files in this location
-    foreach ($alias_files as $file_pattern_to_search_for) {
-      drush_log(dt('Scanning into @path for @pattern', array('@path' => $path, '@pattern' => $file_pattern_to_search_for)), LogLevel::DEBUG_NOTIFY);
-      $alias_files_to_consider = array_merge($alias_files_to_consider, array_keys(drush_scan_directory($path, $file_pattern_to_search_for, $blacklist, 0, TRUE)));
+    if (preg_match("/(?:(^\/var\/aegir\/\.drush)|(^\/data\/disk\/.*\/\.drush))/i", $path)) {
+      // Find all of the matching files in this location
+      foreach ($alias_files as $file_pattern_to_search_for) {
+        if (!preg_match("/self\\\./i", $file_pattern_to_search_for)) {
+          drush_log(dt('Scanning into @path for @pattern', array('@path' => $path, '@pattern' => $file_pattern_to_search_for)), LogLevel::DEBUG_NOTIFY);
+          $alias_files_to_consider = array_merge($alias_files_to_consider, array_keys(drush_scan_directory($path, $file_pattern_to_search_for, $blacklist, 0, TRUE)));
+        }
+      }
     }
   }
 
@@ -842,8 +848,8 @@ function _drush_sitealias_cache_alias($alias_name, $alias_record) {
   // are added to the alias path, so that other alias files
   // stored in those locations become searchable.
   if (!array_key_exists('remote-host', $alias_record) && !empty($alias_record['root'])) {
-    drush_sitealias_add_to_alias_path($alias_record['root'] . '/drush');
-    drush_sitealias_add_to_alias_path($alias_record['root'] . '/sites/all/drush');
+    //drush_sitealias_add_to_alias_path($alias_record['root'] . '/drush');
+    //drush_sitealias_add_to_alias_path($alias_record['root'] . '/sites/all/drush');
     $site_dir = drush_sitealias_local_site_path($alias_record);
     if (isset($site_dir)) {
       drush_sitealias_add_to_alias_path($site_dir);
@@ -2175,7 +2181,14 @@ function drush_sitealias_get_envar_filename($filename_prefix = 'drush-drupal-sit
     return FALSE;
   }
 
-  $tmp = getenv('TMPDIR') ? getenv('TMPDIR') : '/tmp';
+  if (preg_match("/^\/home/", getenv('HOME')) || preg_match("/^\/data\/disk/", getenv('HOME')) || preg_match("/^\/var\/aegir/", getenv('HOME'))) {
+    $ztmp = getenv('HOME') . "/.tmp";
+  }
+  if (!is_dir($ztmp)) {
+    $ztmp = '/tmp'; // Our fallback plan.
+    drush_log(dt("Using /tmp in drush_sitealias_get_envar_filename."), 'info');
+  }
+  $tmp = getenv('TMPDIR') ? getenv('TMPDIR') : $ztmp;
   $username = drush_get_username();
 
   return "{$tmp}/drush-env-{$username}/{$filename_prefix}" . $shell_pid;
