@@ -10,6 +10,8 @@
  * @see includes/bootstrap.inc
  */
 
+use Drush\Log\LogLevel;
+
 /**
  * Log PHP errors to the Drush log. This is in effect until Drupal's error
  * handler takes over.
@@ -26,9 +28,10 @@ function drush_error_handler($errno, $message, $filename, $line, $context) {
   if ($errno & error_reporting()) {
     // By default we log notices.
     $type = drush_get_option('php-notices', 'notice');
+    $halt_on_error = drush_get_option('halt-on-error', TRUE);
 
     // Bitmask value that constitutes an error needing to be logged.
-    $error = E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR | E_USER_ERROR;
+    $error = E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR | E_USER_ERROR | E_RECOVERABLE_ERROR;
     if ($errno & $error) {
       $type = 'error';
     }
@@ -36,10 +39,14 @@ function drush_error_handler($errno, $message, $filename, $line, $context) {
     // Bitmask value that constitutes a warning being logged.
     $warning = E_WARNING | E_CORE_WARNING | E_COMPILE_WARNING | E_USER_WARNING;
     if ($errno & $warning) {
-      $type = 'warning';
+      $type = LogLevel::WARNING;
     }
 
     drush_log($message . ' ' . basename($filename) . ':' . $line, $type);
+
+    if ($errno == E_RECOVERABLE_ERROR && $halt_on_error) {
+      exit(DRUSH_APPLICATION_ERROR);
+    }
 
     return TRUE;
   }
@@ -100,7 +107,7 @@ function _drush_environment_check_php_ini() {
     }
   }
   if (!empty($prohibited_list)) {
-    drush_log(dt('The following restricted PHP modes have non-empty values: !prohibited_list. This configuration is incompatible with drush.  !php_ini_msg', array('!prohibited_list' => implode(' and ', $prohibited_list), '!php_ini_msg' => _drush_php_ini_loaded_file_message())), 'error');
+    drush_log(dt('The following restricted PHP modes have non-empty values: !prohibited_list. This configuration is incompatible with drush.  !php_ini_msg', array('!prohibited_list' => implode(' and ', $prohibited_list), '!php_ini_msg' => _drush_php_ini_loaded_file_message())), LogLevel::ERROR);
   }
 
   return TRUE;
@@ -364,19 +371,28 @@ function drush_valid_root($path) {
 
 /**
  * Tests the currently loaded database credentials to ensure a database connection can be made.
+ *
+ * @param bool $log_errors
+ *   (optional) If TRUE, log error conditions; otherwise be quiet.
+ *
+ * @return bool
+ *   TRUE if database credentials are valid.
  */
 function drush_valid_db_credentials() {
   try {
     $sql = drush_sql_get_class();
     if (!$sqlVersion = drush_sql_get_version()) {
+      drush_log(dt('While checking DB credentials, could not instantiate SQLVersion class.'), 'debug');
       return FALSE;
     }
     if (!$sqlVersion->valid_credentials($sql->db_spec())) {
+      drush_log(dt('DB credentials are invalid.'), 'debug');
       return FALSE;
     }
     return $sql->query('SELECT 1;');
   }
   catch (Exception $e) {
+    drush_log(dt('Checking DB credentials yielded error: @e', array('@e' => $e->getMessage())), 'debug');
     return FALSE;
   }
 }
@@ -721,7 +737,7 @@ function drush_get_extensions($include_hidden = TRUE) {
       $extensions[$name]->label = $extension->info['name'].' ('.$name.')';
     }
     else {
-      drush_log(dt("Extension !name provides no human-readable name in .info file.", array('!name' => $name), 'debug'));
+      drush_log(dt("Extension !name provides no human-readable name in .info file.", array('!name' => $name), LogLevel::DEBUG));
       $extensions[$name]->label = $name.' ('.$name.')';
     }
     if (empty($extension->info['package'])) {

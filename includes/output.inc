@@ -1,5 +1,7 @@
 <?php
 
+use Drush\Log\LogLevel;
+
 /**
  * @defgroup outputfunctions Process output text.
  * @{
@@ -7,7 +9,7 @@
 
 /**
  * Prints a message with optional indentation. In general,
- * drush_log($message, 'ok') is often a better choice than this function.
+ * drush_log($message, LogLevel::OK) is often a better choice than this function.
  * That gets your confirmation message (for example) into the logs for this
  * drush request. Consider that drush requests may be executed remotely and
  * non interactively.
@@ -185,7 +187,7 @@ function dt($string, $args = array()) {
  * will flip the array twice to filter on the key.
  */
 function find_legacy_dt_args($args) {
-  $legacy_args = [];
+  $legacy_args = array();
   foreach ($args as $arg => $replacement) {
     if ($arg[0] == '!') {
       $legacy_args[$arg] = $replacement;

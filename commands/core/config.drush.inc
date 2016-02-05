@@ -5,10 +5,12 @@
  *   Provides Configuration Management commands.
  */
 
+use Drush\Log\LogLevel;
 use Drupal\Core\Config\StorageComparer;
 use Drupal\Core\Config\ConfigImporter;
 use Drupal\Core\Config\ConfigException;
 use Drupal\Core\Config\FileStorage;
+use Drupal\Component\Utility\NestedArray;
 use Drush\Config\StorageWrapper;
 use Drush\Config\CoreExtensionFilter;
 use Symfony\Component\Yaml\Parser;
@@ -194,6 +196,7 @@ function config_drush_command() {
     'options' => array(
       'safe' => 'Validate that there are no git uncommitted changes before proceeding',
       'label' => "A config directory label (i.e. a key in \$config_directories array in settings.php). Defaults to 'sync'",
+      'runner' => 'Where to run the rsync command; defaults to the local site. Can also be "source" or "destination".',
     ),
     'topics' => array('docs-aliases', 'docs-config-exporting'),
   );
@@ -442,7 +445,7 @@ function _drush_config_export($destination, $destination_dir, $branch) {
 
     $config_comparer = new StorageComparer($comparison_source, $target_storage, Drupal::service('config.manager'));
     if (!$config_comparer->createChangelist()->hasChanges()) {
-      return drush_log(dt('There are no changes to export.'), 'ok');
+      return drush_log(dt('There are no changes to export.'), LogLevel::OK);
     }
 
     drush_print("The following configuration changes have been made since the last export:\n");
@@ -487,7 +490,7 @@ function _drush_config_export($destination, $destination_dir, $branch) {
     }
   }
 
-  drush_log(dt('Configuration successfully exported to !target.', array('!target' => $destination_dir)), 'success');
+  drush_log(dt('Configuration successfully exported to !target.', array('!target' => $destination_dir)), LogLevel::SUCCESS);
   drush_backend_set_result($destination_dir);
 
   // Commit and push, or add exported configuration if requested.
@@ -613,7 +616,7 @@ function drush_config_import($source = NULL) {
   }
   $config_comparer = new StorageComparer($source_storage, $active_storage, Drupal::service('config.manager'));
   if (!$config_comparer->createChangelist()->hasChanges()) {
-    return drush_log(dt('There are no changes to import.'), 'ok');
+    return drush_log(dt('There are no changes to import.'), LogLevel::OK);
   }
 
   if (drush_get_option('preview', 'list') == 'list') {
@@ -655,13 +658,13 @@ function _drush_config_import(StorageComparer $storage_comparer) {
     Drupal::service('string_translation')
   );
   if ($config_importer->alreadyImporting()) {
-    drush_log('Another request may be synchronizing configuration already.', 'warning');
+    drush_log('Another request may be synchronizing configuration already.', LogLevel::WARNING);
   }
   else{
     try {
       $config_importer->import();
       drush_drupal_cache_clear_all();
-      drush_log('The configuration was imported successfully.', 'success');
+      drush_log('The configuration was imported successfully.', LogLevel::SUCCESS);
     }
     catch (ConfigException $e) {
       // Return a negative result for UI purposes. We do not differentiate
@@ -671,7 +674,7 @@ function _drush_config_import(StorageComparer $storage_comparer) {
       // coordinating.
       $message = 'The import failed due for the following reasons:' . "\n";
       $message .= implode("\n", $config_importer->getErrors());
-      
+
       watchdog_exception('config_import', $e);
       return drush_set_error('config_import_fail', $message);
     }
@@ -693,7 +696,8 @@ function _drush_config_import_partial(FileStorage $source) {
  * Edit command callback.
  */
 function drush_config_edit($config_name = '') {
-  if (empty($config_name) && $file = drush_get_option('file', FALSE)) {
+  $file = drush_get_option('file', FALSE);
+  if (empty($config_name) && $file) {
     // If not provided, assume config name from the given file.
     $config_name = basename($file, '.yml');
   }
@@ -778,6 +782,7 @@ function drush_config_pull($source, $destination) {
     'strict' => 0,
   );
 
+  // @todo If either call is made interactive, we don't get an $return['object'] back.
   $backend_options = array('interactive' => FALSE);
   if (drush_get_context('DRUSH_SIMULATE')) {
     $backend_options['backend-simulate'] = TRUE;
@@ -787,7 +792,7 @@ function drush_config_pull($source, $destination) {
     // Use the standard backup directory on Destination.
     'destination' => TRUE,
   );
-  drush_log(dt('Starting to export configuration on Target.'), 'ok');
+  drush_log(dt('Starting to export configuration on Target.'), LogLevel::OK);
   $return = drush_invoke_process($source, 'config-export', array(), $global_options + $export_options, $backend_options);
   if ($return['error_status']) {
     return drush_set_error('DRUSH_CONFIG_PULL_EXPORT_FAILED', dt('Config-export failed.'));
@@ -802,8 +807,8 @@ function drush_config_pull($source, $destination) {
     'delete' => TRUE,
   );
   $label = drush_get_option('label', 'sync');
-  $runner = drush_get_runner($source, $destination);
-  drush_log(dt('Starting to rsync configuration from Source to Local.'), 'ok');
+  $runner = drush_get_runner($source, $destination, drush_get_option('runner', FALSE));
+  drush_log(dt('Starting to rsync configuration files from !source to !dest.', array('!source' => $source, '!dest' => $destination)), LogLevel::OK);
   $return = drush_invoke_process($runner, 'core-rsync', array("$source:$export_path", "$destination:%config-$label"), $rsync_options, $backend_options);
   if ($return['error_status']) {
     return drush_set_error('DRUSH_CONFIG_PULL_RSYNC_FAILED', dt('Config-pull rsync failed.'));
@@ -843,7 +848,7 @@ function drush_config_get_object($config_name) {
     return drush_set_error(dt('Config !name does not exist in !source configuration.', array('!name' => $config_name, '!source' => $source)));
   }
   if (empty($data)) {
-    drush_log(dt('Config !name exists but has no data.', array('!name' => $config_name)), 'notice');
+    drush_log(dt('Config !name exists but has no data.', array('!name' => $config_name)), LogLevel::NOTICE);
     return;
   }
   return $data;
@@ -858,11 +863,16 @@ function drush_config_get_object($config_name) {
  *   The config key.
  */
 function drush_config_get_value($config_name, $key) {
-  $config = Drupal::config($config_name);
-  if ($config->isNew()) {
-    return drush_set_error(dt('Config !name does not exist', array('!name' => $config_name)));
+  $data = drush_config_get_object($config_name);
+  $parts = explode('.', $key);
+  if (count($parts) == 1) {
+    $value =  isset($data[$key]) ? $data[$key] : NULL;
   }
-  $value = $config->get($key);
+  else {
+    $value = NestedArray::getValue($data, $parts, $key_exists);
+    $value = $key_exists ? $value : NULL;
+  }
+
   $returns[$config_name . ':' . $key] = $value;
 
   if ($value === NULL) {

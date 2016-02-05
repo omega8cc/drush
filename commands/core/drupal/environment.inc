@@ -10,7 +10,7 @@
 use Drupal\Core\Site\Settings;
 use Drupal\Core\StreamWrapper\PrivateStream;
 use Drupal\Core\StreamWrapper\PublicStream;
-use Psr\Log\LogLevel;
+use Drush\Log\LogLevel;
 use Drupal\Core\Logger\RfcLogLevel;
 
 /**
@@ -250,6 +250,18 @@ function drush_module_invoke_all($hook) {
   // Remove $hook from the arguments.
   array_shift($args);
   return Drupal::moduleHandler()->invokeAll($hook, $args);
+}
+
+/**
+ * Returns a list of enabled themes. Use drush_get_themes() if you need to rebuild
+ * and include hidden as well.
+ *
+ * @return array
+ *  A list of themes keyed by name.
+ */
+function drush_theme_list() {
+  $theme_handler = \Drupal::service('theme_handler');
+  return $theme_handler->listInfo();
 }
 
 /**

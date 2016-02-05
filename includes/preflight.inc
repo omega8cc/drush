@@ -5,6 +5,8 @@
  * Preflight, postflight and shutdown code.
  */
 
+use Drush\Log\LogLevel;
+
 /**
  * The main Drush function.
  *
@@ -108,7 +110,7 @@ function drush_preflight_prepare() {
     $vendor_path = $global_vendor_path;
   }
   else {
-    $msg = "Unable to load autoload.php. Drush now requires Composer in order to install its dependencies and autoload classes. Please see README.md\n";
+    $msg = "Unable to load autoload.php. Run composer install to fetch dependencies and write this file (http://docs.drush.org/en/master/install-alternative/). Or if you prefer, use the drush.phar which already has depdencies included (http://docs.drush.org/en/master/install).\n";
     fwrite(STDERR, $msg);
     return FALSE;
   }
@@ -135,6 +137,9 @@ function drush_preflight_prepare() {
   // Stash our vendor path and classloader.
   drush_set_context('DRUSH_VENDOR_PATH', dirname($vendor_path));
   drush_set_context('DRUSH_CLASSLOADER', $classloader);
+
+  // Can't log until we have a logger, so we'll create this ASAP.
+  _drush_create_default_logger();
 
   // Terminate immediately unless invoked as a command line script
   if (!drush_verify_cli()) {
@@ -175,7 +180,7 @@ function drush_preflight_prepare() {
   // Process initial global options such as --debug.
   _drush_preflight_global_options();
 
-  drush_log(dt("Drush preflight prepare loaded autoloader at !autoloader", array('!autoloader' => realpath($vendor_path))), 'preflight');
+  drush_log(dt("Drush preflight prepare loaded autoloader at !autoloader", array('!autoloader' => realpath($vendor_path))), LogLevel::PREFLIGHT);
 }
 
 /**
@@ -209,7 +214,7 @@ function drush_preflight() {
   _drush_preflight_columns();
 
   // Display is tidy now that column width has been handled.
-  drush_log(dt('Starting Drush preflight.'), 'preflight');
+  drush_log(dt('Starting Drush preflight.'), LogLevel::PREFLIGHT);
 
   // Statically define a way to call drush again.
   define('DRUSH_COMMAND', drush_find_drush());
@@ -224,36 +229,22 @@ function drush_preflight() {
   if (!drush_get_option('local')) {
     _drush_preflight_alias_path();
   }
-
-  if (preg_match("/^\/home/", getenv('HOME'))) {
-    $preflight_regular_user = TRUE;
-  }
-  else {
-    $preflight_regular_user = FALSE;
-  }
-
   if (!drush_get_option('local')) {
     // Load a drushrc.php file in the drush.php's directory.
     drush_load_config('drush');
 
-    if (file_exists('/data/conf/vanilla_drush.inc')) {
-      // Load a drushrc.php file in the $ETC_PREFIX/etc/drush directory.
-      drush_load_config('system');
-    }
+    // Load a drushrc.php file in the $ETC_PREFIX/etc/drush directory.
+    drush_load_config('system');
 
-    if (!$preflight_regular_user || file_exists('/data/conf/vanilla_drush.inc')) {
-      // Load a drushrc.php file at ~/.drushrc.php.
-      drush_load_config('user');
+    // Load a drushrc.php file at ~/.drushrc.php.
+    drush_load_config('user');
 
-      // Load a drushrc.php file in the ~/.drush directory.
-      drush_load_config('home.drush');
-    }
+    // Load a drushrc.php file in the ~/.drush directory.
+    drush_load_config('home.drush');
   }
 
-  if (!$preflight_regular_user || file_exists('/data/conf/vanilla_drush.inc')) {
-    // Load a custom config specified with the --config option.
-    drush_load_config('custom');
-  }
+  // Load a custom config specified with the --config option.
+  drush_load_config('custom');
 
   _drush_preflight_global_options();
   // Load all the commandfiles findable from any of the
@@ -261,7 +252,7 @@ function drush_preflight() {
   _drush_find_commandfiles_drush();
 
   // Look up the alias identifier that the user wants to use,
-  // either via an arguement or via 'site-set'.
+  // either via an argument or via 'site-set'.
   $target_alias = drush_sitealias_check_arg_and_site_set();
 
   // Process the site alias that specifies which instance
@@ -297,6 +288,14 @@ function drush_preflight() {
 
   // Fail if we could not find the selected site alias.
   if ($target_alias && empty($alias_record)) {
+    // We will automatically un-set the site-set alias if it could not be found.
+    // Otherwise, we'd be stuck -- the user would only be able to execute Drush
+    // commands again after `drush @none site-set @none`, and most folks would
+    // have a hard time figuring that out.
+    $site_env = drush_sitealias_site_get();
+    if ($site_env == $target_alias) {
+      drush_sitealias_site_clear();
+    }
     return drush_set_error('DRUSH_BOOTSTRAP_NO_ALIAS', dt("Could not find the alias !alias", array('!alias' => $target_alias)));
   }
 
@@ -356,9 +355,12 @@ function drush_preflight_site() {
 
 function _drush_preflight_global_options() {
   // Debug implies verbose
-  drush_set_context('DRUSH_VERBOSE',     drush_get_option(array('verbose', 'debug'), FALSE));
-  drush_set_context('DRUSH_DEBUG', drush_get_option('debug'));
-  drush_set_context('DRUSH_SIMULATE',    drush_get_option('simulate', FALSE));
+  $verbose = drush_get_option('verbose', FALSE);
+  $debug = drush_get_option('debug', FALSE);
+  drush_set_context('DRUSH_VERBOSE',      $verbose || $debug);
+  drush_set_context('DRUSH_DEBUG',        $debug);
+  drush_set_context('DRUSH_DEBUG_NOTIFY', $verbose && $debug);
+  drush_set_context('DRUSH_SIMULATE',     drush_get_option('simulate', FALSE));
 
   // Backend implies affirmative unless negative is explicitly specified
   drush_set_context('DRUSH_NEGATIVE',    drush_get_option('no', FALSE));
@@ -390,20 +392,20 @@ function _drush_preflight_base_environment() {
   // Copy ETC_PREFIX and SHARE_PREFIX from environment variables if available.
   // This alters where we check for server-wide config and alias files.
   // Used by unit test suite to provide a clean environment.
-  //if (getenv('ETC_PREFIX')) drush_set_context('ETC_PREFIX', getenv('ETC_PREFIX'));
-  //if (getenv('SHARE_PREFIX')) drush_set_context('SHARE_PREFIX', getenv('SHARE_PREFIX'));
+  if (getenv('ETC_PREFIX')) drush_set_context('ETC_PREFIX', getenv('ETC_PREFIX'));
+  if (getenv('SHARE_PREFIX')) drush_set_context('SHARE_PREFIX', getenv('SHARE_PREFIX'));
 
-  //drush_set_context('DOC_PREFIX', DRUSH_BASE_PATH);
-  //if (!file_exists(DRUSH_BASE_PATH . '/README.md') && file_exists(drush_get_context('SHARE_PREFIX', '/usr') . '/share/doc/drush' . '/README.md')) {
-  //  drush_set_context('DOC_PREFIX', drush_get_context('SHARE_PREFIX', '/usr') . '/share/doc/drush');
-  //}
+  drush_set_context('DOC_PREFIX', DRUSH_BASE_PATH);
+  if (!file_exists(DRUSH_BASE_PATH . '/README.md') && file_exists(drush_get_context('SHARE_PREFIX', '/usr') . '/share/doc/drush' . '/README.md')) {
+    drush_set_context('DOC_PREFIX', drush_get_context('SHARE_PREFIX', '/usr') . '/share/doc/drush');
+  }
 
-  //$default_prefix_configuration = drush_is_windows() ? getenv('ALLUSERSPROFILE') . '/Drush' : '';
-  //$default_prefix_commandfile = drush_is_windows() ? getenv('ALLUSERSPROFILE') . '/Drush' : '/usr';
-  //$site_wide_configuration_dir = drush_get_context('ETC_PREFIX', $default_prefix_configuration) . '/etc/drush';
-  //$site_wide_commandfile_dir = drush_get_context('SHARE_PREFIX', $default_prefix_commandfile) . '/share/drush/commands';
-  //drush_set_context('DRUSH_SITE_WIDE_CONFIGURATION', $site_wide_configuration_dir);
-  //drush_set_context('DRUSH_SITE_WIDE_COMMANDFILES', $site_wide_commandfile_dir);
+  $default_prefix_configuration = drush_is_windows() ? getenv('ALLUSERSPROFILE') . '/Drush' : '';
+  $default_prefix_commandfile = drush_is_windows() ? getenv('ALLUSERSPROFILE') . '/Drush' : '/usr';
+  $site_wide_configuration_dir = drush_get_context('ETC_PREFIX', $default_prefix_configuration) . '/etc/drush';
+  $site_wide_commandfile_dir = drush_get_context('SHARE_PREFIX', $default_prefix_commandfile) . '/share/drush/commands';
+  drush_set_context('DRUSH_SITE_WIDE_CONFIGURATION', $site_wide_configuration_dir);
+  drush_set_context('DRUSH_SITE_WIDE_COMMANDFILES', $site_wide_commandfile_dir);
 
   $server_home = drush_server_home();
   if (isset($server_home)) {
@@ -431,7 +433,7 @@ function _drush_preflight_columns() {
         $columns = (int)preg_replace('/\D/', '', $columns_output[4], -1, $columns_count);
       }
       else {
-        drush_log(dt('Drush could not detect the console window width. Set a Windows Environment Variable of COLUMNS to the desired width.'), 'warning');
+        drush_log(dt('Drush could not detect the console window width. Set a Windows Environment Variable of COLUMNS to the desired width.'), LogLevel::WARNING);
       }
     }
 
@@ -484,23 +486,19 @@ function _drush_find_commandfiles_drush() {
   $searchpath[] = dirname(__FILE__) . '/../commands/';
 
   // User commands, specified by 'include' option
-  if (!$preflight_regular_user || file_exists('/data/conf/vanilla_drush.inc')) {
-    $include = drush_get_context('DRUSH_INCLUDE', array());
-    foreach ($include as $path) {
-      if (is_dir($path)) {
-        drush_log('Include ' . $path, 'notice');
-        $searchpath[] = $path;
-      }
+  $include = drush_get_context('DRUSH_INCLUDE', array());
+  foreach ($include as $path) {
+    if (is_dir($path)) {
+      drush_log('Include ' . $path, LogLevel::NOTICE);
+      $searchpath[] = $path;
     }
   }
 
   if (!drush_get_option('local')) {
-    if (file_exists('/data/conf/vanilla_drush.inc')) {
-      // System commands, residing in $SHARE_PREFIX/share/drush/commands
-      $share_path = drush_get_context('DRUSH_SITE_WIDE_COMMANDFILES');
-      if (is_dir($share_path)) {
-        $searchpath[] = $share_path;
-      }
+    // System commands, residing in $SHARE_PREFIX/share/drush/commands
+    $share_path = drush_get_context('DRUSH_SITE_WIDE_COMMANDFILES');
+    if (is_dir($share_path)) {
+      $searchpath[] = $share_path;
     }
 
     // User commands, residing in ~/.drush

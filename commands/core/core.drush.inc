@@ -5,6 +5,8 @@
  *   Core drush commands.
  */
 
+use Drush\Log\LogLevel;
+
 /**
  * Implementation of hook_drush_help().
  *
@@ -161,7 +163,7 @@ function core_drush_command() {
     'outputformat' => array(
       'default' => 'key-value',
       'pipe-format' => 'json',
-      'field-labels' => array('drupal-version' => 'Drupal version', 'uri' => 'Site URI', 'db-driver' => 'Database driver', 'db-hostname' => 'Database hostname', 'db-port' => 'Database port', 'db-username' => 'Database username', 'db-password' => 'Database password', 'db-name' => 'Database name', 'db-status' => 'Database', 'bootstrap' => 'Drupal bootstrap', 'user' => 'Drupal user', 'theme' => 'Default theme', 'admin-theme' => 'Administration theme', 'php-bin' => 'PHP executable', 'php-conf' => 'PHP configuration', 'php-os' => 'PHP OS', 'drush-script' => 'Drush script', 'drush-version' => 'Drush version', 'drush-temp' => 'Drush temp directory', 'drush-conf' => 'Drush configuration', 'drush-alias-files' => 'Drush alias files', 'install-profile' => 'Install profile', 'root' => 'Drupal root', 'site-path' => 'Site path', 'root' => 'Drupal root', 'site' => 'Site path', 'themes' => 'Themes path', 'modules' => 'Modules path', 'files' => 'File directory path', 'private' => 'Private file directory path', 'temp' => 'Temporary file directory path', 'config-sync' => 'Sync config path', 'files-path' => 'File directory path', 'temp-path' => 'Temporary file directory path', '%paths' => 'Other paths'),
+      'field-labels' => array('drupal-version' => 'Drupal version', 'uri' => 'Site URI', 'db-driver' => 'Database driver', 'db-hostname' => 'Database hostname', 'db-port' => 'Database port', 'db-username' => 'Database username', 'db-password' => 'Database password', 'db-name' => 'Database name', 'db-status' => 'Database', 'bootstrap' => 'Drupal bootstrap', 'user' => 'Drupal user', 'theme' => 'Default theme', 'admin-theme' => 'Administration theme', 'php-bin' => 'PHP executable', 'php-conf' => 'PHP configuration', 'php-os' => 'PHP OS', 'drush-script' => 'Drush script', 'drush-version' => 'Drush version', 'drush-temp' => 'Drush temp directory', 'drush-conf' => 'Drush configuration', 'drush-alias-files' => 'Drush alias files', 'install-profile' => 'Install profile', 'root' => 'Drupal root', 'drupal-settings-file' => 'Drupal Settings File', 'site-path' => 'Site path', 'root' => 'Drupal root', 'site' => 'Site path', 'themes' => 'Themes path', 'modules' => 'Modules path', 'files' => 'File directory path', 'private' => 'Private file directory path', 'temp' => 'Temporary file directory path', 'config-sync' => 'Sync config path', 'files-path' => 'File directory path', 'temp-path' => 'Temporary file directory path', '%paths' => 'Other paths'),
       'formatted-filter' => '_drush_core_status_format_table_data',
       'private-fields' => 'db-password',
       'simplify-single' => TRUE,
@@ -288,7 +290,7 @@ function core_drush_command() {
     ),
     'strict-option-handling' => TRUE,
     'examples' => array(
-      'drush rsync @dev @stage' => 'Rsync Drupal root from Drush alias dev to the alias stage (one of which must be local).',
+      'drush rsync @dev @stage' => 'Rsync Drupal root from Drush alias dev to the alias stage. Either or both may be remote.',
       'drush rsync ./ @stage:%files/img' => 'Rsync all files in the current directory to the \'img\' directory in the file storage folder on the Drush alias stage.',
       'drush -s rsync @dev @stage --exclude=*.sql --delete' => "Simulate Rsync Drupal root from the Drush alias dev to the alias stage (one of which must be local), excluding all files that match the filter '*.sql' and delete all files on the destination that are no longer on the source.",
     ),
@@ -433,7 +435,7 @@ function core_drush_engine_drupal() {
  */
 function drush_core_entity_updates() {
   if (drush_get_context('DRUSH_SIMULATE')) {
-    drush_log(dt('entity-updates command does not support --simpulate option.'), 'ok');
+    drush_log(dt('entity-updates command does not support --simpulate option.'), LogLevel::OK);
   }
 
   drush_include_engine('drupal', 'update');
@@ -443,7 +445,7 @@ function drush_core_entity_updates() {
 
   drush_drupal_cache_clear_all();
 
-  drush_log(dt('Finished performing updates.'), 'ok');
+  drush_log(dt('Finished performing updates.'), LogLevel::OK);
 }
 
 /**
@@ -451,19 +453,21 @@ function drush_core_entity_updates() {
  */
 function drush_core_updatedb() {
   if (drush_get_context('DRUSH_SIMULATE')) {
-    drush_log(dt('updatedb command does not support --simulate option.'), 'ok');
+    drush_log(dt('updatedb command does not support --simulate option.'), LogLevel::OK);
     return TRUE;
   }
 
   drush_include_engine('drupal', 'update');
-  if (update_main() === FALSE) {
+  $result = update_main();
+  if ($result === FALSE) {
     return FALSE;
   }
+  elseif ($result > 0) {
+    // Clear all caches in a new process. We just performed major surgery.
+    drush_drupal_cache_clear_all();
 
-  // Clear all caches in a new process. We just performed major surgery.
-  drush_drupal_cache_clear_all();
-
-  drush_log(dt('Finished performing updates.'), 'ok');
+    drush_log(dt('Finished performing updates.'), LogLevel::OK);
+  }
 }
 
 /**
@@ -475,7 +479,7 @@ function drush_core_updatedb_status() {
   drush_include_engine('drupal', 'update');
   list($pending, $start) = updatedb_status();
   if (empty($pending)) {
-    drush_log(dt("No database updates required"), 'ok');
+    drush_log(dt("No database updates required"), LogLevel::OK);
   }
   return $pending;
 }
@@ -559,6 +563,10 @@ function _core_site_status_table($project = '') {
   $phase = drush_get_context('DRUSH_BOOTSTRAP_PHASE');
   if ($drupal_root = drush_get_context('DRUSH_DRUPAL_ROOT')) {
     $status_table['drupal-version'] = drush_drupal_version();
+    $boot_object = drush_get_bootstrap_object();
+    $conf_dir = $boot_object->conf_path();
+    $settings_file = "$conf_dir/settings.php";
+    $status_table['drupal-settings-file'] = file_exists($settings_file) ? $settings_file : '';
     if ($site_root = drush_get_context('DRUSH_DRUPAL_SITE_ROOT')) {
       $status_table['uri'] = drush_get_context('DRUSH_URI');
       try {
@@ -576,7 +584,6 @@ function _core_site_status_table($project = '') {
         $status_table['db-name'] = isset($db_spec['database']) ? $db_spec['database'] : NULL;
         $status_table['db-port'] = isset($db_spec['port']) ? $db_spec['port'] : NULL;
         if ($phase > DRUSH_BOOTSTRAP_DRUPAL_CONFIGURATION) {
-          $boot_object = drush_get_bootstrap_object();
           $status_table['install-profile'] = $boot_object->get_profile();
           if ($phase > DRUSH_BOOTSTRAP_DRUPAL_FULL) {
             $status_table['bootstrap'] = dt('Successful');
@@ -645,6 +652,9 @@ function _drush_core_status_format_table_data($output, $metadata) {
       $msg = dt("\nThere are !count more alias files. Run with --full to see the full list.", array('!count' => count($output['drush-alias-files']) - 1));
       $output['drush-alias-files'] = array($output['drush-alias-files'][0] , $msg);
     }
+    if (isset($output['drupal-settings-file']) && empty($output['drupal-settings-file'])) {
+      $output['drupal-settings-file'] = dt('MISSING');
+    }
   }
   return $output;
 }
@@ -660,7 +670,7 @@ function drush_core_cron() {
     $result = \Drupal::service('cron')->run();
   }
   if ($result) {
-    drush_log(dt('Cron run successful.'), 'success');
+    drush_log(dt('Cron run successful.'), LogLevel::SUCCESS);
   }
   else {
     return drush_set_error('DRUSH_CRON_FAILED', dt('Cron run failed.'));
@@ -755,21 +765,12 @@ function _drush_core_config_php_ini_files() {
       $ini_files[] = $drush_ini;
     }
   }
-  if ($drush_ini = getenv('PHP_INI')) {
-    if (file_exists($drush_ini)) {
-      $ini_files = array();
-      $ini_files[] = $drush_ini;
-    }
-  }
-  foreach (array(drush_server_home() . '/.drush') as $ini_dir) {
-    if (file_exists($ini_dir . "/php.ini") && $ini_files[0] != realpath($ini_dir . "/php.ini")) {
-      $ini_files[] = realpath($ini_dir . "/php.ini");
-    }
+  foreach (array(DRUSH_BASE_PATH, '/etc/drush', drush_server_home() . '/.drush') as $ini_dir) {
     if (file_exists($ini_dir . "/drush.ini")) {
       $ini_files[] = realpath($ini_dir . "/drush.ini");
     }
   }
-  return $ini_files;
+  return array_unique($ini_files);
 }
 
 function _drush_core_config_bash_files() {
@@ -942,7 +943,7 @@ function drush_core_quick_drupal() {
     }
   }
   if (!drush_get_option('db-url', FALSE)) {
-    drush_set_option('db-url', 'sqlite:' . $base . '/' . $name . '.sqlite');
+    drush_set_option('db-url', 'sqlite://' . $base . '/sites/' . strtolower(drush_get_option('sites-subdir', 'default')) . "/$name.sqlite");
   }
   // We have just created a site root where one did not exist before.
   // We therefore must manually reset DRUSH_SELECTED_DRUPAL_ROOT to
@@ -988,7 +989,8 @@ function drush_core_quick_drupal() {
       // Current CLI user is also the web server user, which is for development
       // only. Hence we can safely make the site directory writable. This makes
       // it easier to delete and edit settings.php.
-      @chmod(conf_path(), 0700);
+      $boot = drush_get_bootstrap_object();
+      @chmod($boot->conf_path(), 0700);
       drush_invoke('runserver', array($server));
     }
   }
@@ -1005,7 +1007,7 @@ function _drush_core_qd_cache_uri($uri) {
   }
   $dir = DRUPAL_ROOT . '/drush';
   $target_file = $dir . '/drushrc.php';
-  drush_log(dt("Caching 'uri' !uri in !target", array('!uri' => $server, '!target' => $target_file)), 'ok');
+  drush_log(dt("Caching 'uri' !uri in !target", array('!uri' => $server, '!target' => $target_file)), LogLevel::OK);
   $create_file = TRUE;
   if (file_exists($target_file)) {
     // Don't bother to ask with --use-existing; just
@@ -1111,7 +1113,7 @@ function drush_core_php_script() {
         $searchpath[] = $path;
       }
     }
-    drush_log(dt('Searching for scripts in ') . implode(',', $searchpath), 'debug');
+    drush_log(dt('Searching for scripts in ') . implode(',', $searchpath), LogLevel::DEBUG);
 
     if (!isset($script)) {
       // List all available scripts.
@@ -1351,7 +1353,7 @@ function drush_core_twig_compile() {
       $relative = str_replace(drush_get_context('DRUSH_DRUPAL_ROOT'). '/', '', $file->filename);
       // @todo Dynamically disable twig debugging since there is no good info there anyway.
       twig_render_template($relative, array('theme_hook_original' => ''));
-      drush_log(dt('Compiled twig template !path', array('!path' => $relative)), 'notice');
+      drush_log(dt('Compiled twig template !path', array('!path' => $relative)), LogLevel::NOTICE);
     }
   }
 }

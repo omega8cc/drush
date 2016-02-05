@@ -4,7 +4,8 @@
  * Drush Make commands.
  */
 
-use \Drush\UpdateService\ReleaseInfo;
+use Drush\Log\LogLevel;
+use Drush\UpdateService\ReleaseInfo;
 
 /**
  * Default localization server for downloading translations.
@@ -119,6 +120,8 @@ function make_drush_command() {
         'description' => 'Return project info for use by core-quick-drupal.',
         'hidden' => TRUE,
       ),
+      'includes' => 'A list of makefiles to include at build-time.',
+      'overrides' => 'A list of makefiles to that can override values in other makefiles.',
     ),
     'engines' => array('release_info'),
     'topics' => array('docs-make', 'docs-make-example'),
@@ -154,6 +157,7 @@ function make_drush_command() {
     'options' => array(
       'projects' => $projects,
       'libraries' => $libraries,
+      'includes' => 'A list of makefiles to include at build-time.',
     ),
     'required-arguments' => TRUE,
     'examples' => array(
@@ -190,6 +194,7 @@ function make_drush_command() {
         'description' => 'The format for generated lockfiles. Options are "yaml" or "ini". Defaults to "yaml".',
         'example-value' => 'ini',
       ),
+      'includes' => 'A list of makefiles to include at build-time.',
     ),
     'engines' => array('release_info', 'update_status'),
   );
@@ -209,6 +214,7 @@ function make_drush_command() {
         'description' => 'The format for generated lockfiles. Options are "yaml" or "ini". Defaults to "yaml".',
         'example-value' => 'ini',
       ),
+      'includes' => 'A list of makefiles to include at build-time.',
     ),
     'allow-additional-options' => TRUE,
     'engines' => array('release_info', 'update_status'),
@@ -298,7 +304,7 @@ function drush_make($makefile = NULL, $build_path = NULL) {
   // Build.
   if (!drush_get_option('no-build', FALSE)) {
     $info = make_parse_info_file($makefile);
-    drush_log(dt('Beginning to build !makefile.', array('!makefile' => $makefile)), 'ok');
+    drush_log(dt('Beginning to build !makefile.', array('!makefile' => $makefile)), LogLevel::OK);
 
     // Default contrib destination depends on Drupal core version.
     $core_version = str_replace('.x', '', $info['core'][0]);
@@ -321,7 +327,7 @@ function drush_make($makefile = NULL, $build_path = NULL) {
           drush_print($md5);
         }
         else {
-          drush_log(dt('Build hash: %md5', array('%md5' => $md5)), 'ok');
+          drush_log(dt('Build hash: %md5', array('%md5' => $md5)), LogLevel::OK);
         }
       }
       // Only take final build steps if not in testing mode.
@@ -344,7 +350,7 @@ function drush_make($makefile = NULL, $build_path = NULL) {
   $lockfiles = array();
   if ($result_file = drush_get_option('bundle-lockfile', FALSE)) {
     if ($result_file === TRUE) {
-      $result_file = 'sites/all/drush/platform.lock';
+      $result_file = 'sites/all/drush/platform.make';
     }
     $lockfiles[] = $build_path . '/' . $result_file;
   }
@@ -375,7 +381,7 @@ function drush_make($makefile = NULL, $build_path = NULL) {
  */
 function drush_make_convert($makefile) {
 
-  drush_log(dt('Beginning to convert !makefile.', array('!makefile' => $makefile)), 'ok');
+  drush_log(dt('Beginning to convert !makefile.', array('!makefile' => $makefile)), LogLevel::OK);
 
   $file = $makefile . '.yml';
   $info = make_parse_info_file($makefile);
@@ -386,7 +392,7 @@ function drush_make_convert($makefile) {
   $yaml = $dumper->format($info, array());
 
   if (file_put_contents($file, $yaml)) {
-    drush_log(dt("Wrote make file @file", array('@file' => $file)), 'ok');
+    drush_log(dt("Wrote make file @file", array('@file' => $file)), LogLevel::OK);
     return $file;
   }
   else {
