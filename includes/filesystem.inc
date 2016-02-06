@@ -474,7 +474,7 @@ function drush_find_tmp() {
       if (!is_dir($tmp)) {
         $tmp = '/tmp'; // Our fallback plan.
         $directories[] = $tmp;
-        drush_log(dt("Using /tmp in drush_find_tmp."), 'info');
+        drush_log(dt("Using /tmp in drush_find_tmp."), LogLevel::OK);
       }
     }
     $directories[] = sys_get_temp_dir();
