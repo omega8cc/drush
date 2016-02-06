@@ -406,9 +406,11 @@ function _drush_preflight_base_environment() {
   // Copy ETC_PREFIX and SHARE_PREFIX from environment variables if available.
   // This alters where we check for server-wide config and alias files.
   // Used by unit test suite to provide a clean environment.
+  // BOA restriction
   //if (getenv('ETC_PREFIX')) drush_set_context('ETC_PREFIX', getenv('ETC_PREFIX'));
   //if (getenv('SHARE_PREFIX')) drush_set_context('SHARE_PREFIX', getenv('SHARE_PREFIX'));
 
+  // BOA restriction
   //$default_prefix_configuration = drush_is_windows() ? getenv('ALLUSERSPROFILE') . '/Drush' : '';
   //$default_prefix_commandfile = drush_is_windows() ? getenv('ALLUSERSPROFILE') . '/Drush' : '/usr';
   //$site_wide_configuration_dir = drush_get_context('ETC_PREFIX', $default_prefix_configuration) . '/etc/drush';
