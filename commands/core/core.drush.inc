@@ -213,6 +213,7 @@ function core_drush_command() {
       'drush php-eval \'variable_set("hello", "world");\'' => 'Sets the hello variable using Drupal API.',
       'drush php-eval \'$node = node_load(1); print $node->title;\'' => 'Loads node with nid 1 and then prints its title.',
       'drush php-eval "file_unmanaged_copy(\'$HOME/Pictures/image.jpg\', \'public://image.jpg\');"' => 'Copies a file whose path is determined by an environment\'s variable. Note the use of double quotes so the variable $HOME gets replaced by its value.',
+      'drush php-eval "node_access_rebuild();"' => 'Rebuild node access permissions.',
     ),
     'arguments' => array(
       'code' => 'PHP code',
@@ -435,7 +436,7 @@ function core_drush_engine_drupal() {
  */
 function drush_core_entity_updates() {
   if (drush_get_context('DRUSH_SIMULATE')) {
-    drush_log(dt('entity-updates command does not support --simpulate option.'), LogLevel::OK);
+    drush_log(dt('entity-updates command does not support --simulate option.'), LogLevel::OK);
   }
 
   drush_include_engine('drupal', 'update');
@@ -898,8 +899,8 @@ function drush_core_quick_drupal() {
   drush_set_option('backend', TRUE);
   drush_set_option('strict', FALSE); // We fail option validation because do so much internal drush_invoke().
   $makefile = drush_get_option('makefile');
-  if (drush_get_option('use-existing', FALSE)) {
-    $root = drush_get_context('DRUSH_SELECTED_DRUPAL_ROOT');
+  $root = drush_get_context('DRUSH_SELECTED_DRUPAL_ROOT');
+  if (drush_get_option('use-existing', ($root != FALSE))) {
     if (!$root) {
       return drush_set_error('QUICK_DRUPAL_NO_ROOT_SPECIFIED', 'Must specify site with --root when using --use-existing.');
     }
@@ -1000,7 +1001,7 @@ function drush_core_quick_drupal() {
       // it easier to delete and edit settings.php.
       $boot = drush_get_bootstrap_object();
       @chmod($boot->conf_path(), 0700);
-      drush_invoke('runserver', array($server));
+      drush_invoke_process(array('root' => $root, 'uri' => $server_uri), 'runserver', array($server));
     }
   }
   else {
@@ -1054,7 +1055,7 @@ EOT;
 function drush_core_quick_drupal_options(&$items) {
   $options = array(
     'core' => 'Drupal core to download. Defaults to "drupal" (latest stable version).',
-    'use-existing' => 'Use an existing Drupal root, specified with --root. Overrides --core.',
+    'use-existing' => 'Use an existing Drupal root, specified with --root. Overrides --core. Defaults to true when run from an existing site.',
     'profile' => 'The install profile to use. Defaults to standard.',
     'enable' => 'Specific extensions (modules or themes) to enable. By default, extensions with the same name as requested projects will be enabled automatically.',
     'server' => 'Host IP address and port number to bind to and path to open in web browser (hyphen to clear a default path), all elements optional. See runserver examples for shorthand.',
