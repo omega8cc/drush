@@ -112,9 +112,8 @@ abstract class DrupalBoot extends BaseBoot {
     switch ($phase) {
       case DRUSH_BOOTSTRAP_DRUPAL_ROOT:
         $drupal_root = drush_get_context('DRUSH_SELECTED_DRUPAL_ROOT');
-        // BOA restriction
-        // $searchpath[] = $drupal_root . '/../drush';
-        // $searchpath[] = $drupal_root . '/drush';
+        $searchpath[] = $drupal_root . '/../drush';
+        $searchpath[] = $drupal_root . '/drush';
         $searchpath[] = $drupal_root . '/sites/all/drush';
         break;
       case DRUSH_BOOTSTRAP_DRUPAL_SITE:

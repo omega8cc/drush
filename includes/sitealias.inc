@@ -321,11 +321,10 @@ function _drush_sitealias_get_record($alias, $alias_context = NULL) {
 
   if (!empty($alias_record)) {
     if (!isset($alias_record['remote']) && !isset($alias_record['#loaded-config'])) {
-      // BOA restriction
-      //if (array_key_exists('root', $alias_record)) {
-      //  drush_sitealias_add_to_alias_path($alias_record['root'] . '/drush');
-      //  drush_sitealias_add_to_alias_path($alias_record['root'] . '/sites/all/drush');
-      //}
+      if (array_key_exists('root', $alias_record)) {
+        drush_sitealias_add_to_alias_path($alias_record['root'] . '/drush');
+        drush_sitealias_add_to_alias_path($alias_record['root'] . '/sites/all/drush');
+      }
       // TODO: We should probably remove this feature, and put it back
       // in, but in different places (e.g. site selection, sql-sync + rsync
       // parameters, etc.)
@@ -406,9 +405,8 @@ function drush_sitealias_alias_path($alias_path_context = NULL) {
   // look for alias files in /drush and /sites/all/drush.
   $drupal_root = drush_get_context('DRUSH_SELECTED_DRUPAL_ROOT');
   if (!empty($drupal_root)) {
-    // BOA restriction
-    // $site_paths[] = drush_sitealias_alias_base_directory($drupal_root . '/../drush');
-    // $site_paths[] = drush_sitealias_alias_base_directory($drupal_root . '/drush');
+    $site_paths[] = drush_sitealias_alias_base_directory($drupal_root . '/../drush');
+    $site_paths[] = drush_sitealias_alias_base_directory($drupal_root . '/drush');
     $site_paths[] = drush_sitealias_alias_base_directory($drupal_root . '/sites/all/drush');
     $uri = drush_get_context('DRUSH_SELECTED_URI');
     if (empty($uri)) {
@@ -848,9 +846,8 @@ function _drush_sitealias_cache_alias($alias_name, $alias_record) {
   // are added to the alias path, so that other alias files
   // stored in those locations become searchable.
   if (!array_key_exists('remote-host', $alias_record) && !empty($alias_record['root'])) {
-    // BOA restriction
-    //drush_sitealias_add_to_alias_path($alias_record['root'] . '/drush');
-    //drush_sitealias_add_to_alias_path($alias_record['root'] . '/sites/all/drush');
+    drush_sitealias_add_to_alias_path($alias_record['root'] . '/drush');
+    drush_sitealias_add_to_alias_path($alias_record['root'] . '/sites/all/drush');
     $site_dir = drush_sitealias_local_site_path($alias_record);
     if (isset($site_dir)) {
       drush_sitealias_add_to_alias_path($site_dir);
