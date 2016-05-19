@@ -668,6 +668,7 @@ class makeMakefileCase extends CommandUnishTestCase {
   }
 
   function testMakeSvn() {
+    return $this->markTestSkipped('svn support is deprecated.');
     // Silently skip svn test if svn is not installed.
     exec('which svn', $output, $whichSvnErrorCode);
     if (!$whichSvnErrorCode) {
