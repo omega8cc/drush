@@ -178,6 +178,16 @@ function config_drush_command() {
     ),
   );
 
+  $items['config-delete'] = array(
+    'description' => 'Delete a configuration object.',
+    'core' => array('8+'),
+    'aliases' => array('cdel'),
+    'arguments' => array(
+        'config-name' => 'The config object name, for example "system.site".',
+    ),
+    'required arguments'
+  );
+
   $items['config-pull'] = array(
     'description' => 'Export and transfer config from one environment to another.',
     // 'core' => array('8+'), Operates on remote sites so not possible to declare this locally.
@@ -252,6 +262,22 @@ function drush_config_get($config_name, $key = NULL) {
   }
   else {
     return drush_config_get_value($config_name, $key);
+  }
+}
+
+/**
+ * Config delete command callback.
+ *
+ * @param $config_name
+ *   The config name.
+ */
+function drush_config_delete($config_name) {
+  $config =\Drupal::service('config.factory')->getEditable($config_name);
+  if ($config->isNew()) {
+    return drush_set_error('DRUSH_CONFIG_ERROR', 'Configuration name not recognized. Use config-list to see all names.');
+  }
+  else {
+    $config->delete();
   }
 }
 
@@ -787,18 +813,22 @@ function drush_config_pull($source, $destination) {
     return drush_set_error('DRUSH_CONFIG_PULL_EXPORT_FAILED', dt('Config-export failed.'));
   }
   else {
-    // Trailing slash assures that transer files and not the containing dir.
+    // Trailing slash assures that transfer files and not the containing dir.
     $export_path = $return['object'] . '/';
   }
 
   $rsync_options = array(
     'remove-source-files' => TRUE,
     'delete' => TRUE,
+    'yes' => TRUE,  // No need to prompt as destination is always the target config directory.
   );
   $label = drush_get_option('label', 'sync');
   $runner = drush_get_runner($source, $destination, drush_get_option('runner', FALSE));
   drush_log(dt('Starting to rsync configuration files from !source to !dest.', array('!source' => $source, '!dest' => $destination)), LogLevel::OK);
-  $return = drush_invoke_process($runner, 'core-rsync', array("$source:$export_path", "$destination:%config-$label"), $rsync_options, $backend_options);
+  // This comment applies similarly to sql-sync's use of core-rsync.
+  // Since core-rsync is a strict-handling command and drush_invoke_process() puts options at end, we can't send along cli options to rsync.
+  // Alternatively, add options like --ssh-options to a site alias (usually on the machine that initiates the sql-sync).
+  $return = drush_invoke_process($runner, 'core-rsync', array("$source:$export_path", "$destination:%config-$label"), $rsync_options);
   if ($return['error_status']) {
     return drush_set_error('DRUSH_CONFIG_PULL_RSYNC_FAILED', dt('Config-pull rsync failed.'));
   }
