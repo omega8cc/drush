@@ -4,24 +4,25 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "7d44836abcab31b15a5fa52f6de174a0",
-    "content-hash": "49774108d1a69152f6c903e20b368ebf",
+    "hash": "9f89c3b43e210009e5a10c58c375bebb",
+    "content-hash": "efa23063af4b585ba1de19e550f1ccce",
     "packages": [
         {
             "name": "consolidation/annotated-command",
-            "version": "1.3.1",
+            "version": "2.0.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/consolidation-org/annotated-command.git",
-                "reference": "dc78a7303453a67598aa7cdbf22c1fbf2714c684"
+                "url": "https://github.com/consolidation/annotated-command.git",
+                "reference": "2e178edadfa186806bc7a296fa1dc4e9587c7d64"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/consolidation-org/annotated-command/zipball/dc78a7303453a67598aa7cdbf22c1fbf2714c684",
-                "reference": "dc78a7303453a67598aa7cdbf22c1fbf2714c684",
+                "url": "https://api.github.com/repos/consolidation/annotated-command/zipball/2e178edadfa186806bc7a296fa1dc4e9587c7d64",
+                "reference": "2e178edadfa186806bc7a296fa1dc4e9587c7d64",
                 "shasum": ""
             },
             "require": {
+                "consolidation/output-formatters": "^2.0.0-rc1",
                 "php": ">=5.4.0",
                 "phpdocumentor/reflection-docblock": "^2.0|^3.0.2",
                 "psr/log": "~1.0",
@@ -30,7 +31,6 @@
                 "symfony/finder": "~2.5|~3.0"
             },
             "require-dev": {
-                "consolidation/output-formatters": "~1",
                 "phpunit/phpunit": "4.*",
                 "satooshi/php-coveralls": "^1.0",
                 "squizlabs/php_codesniffer": "2.*"
@@ -38,7 +38,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.x-dev"
+                    "dev-master": "2.x-dev"
                 }
             },
             "autoload": {
@@ -57,25 +57,26 @@
                 }
             ],
             "description": "Initialize Symfony Console commands from annotated command class methods.",
-            "time": "2016-09-09 04:45:40"
+            "time": "2016-10-01 15:03:43"
         },
         {
             "name": "consolidation/output-formatters",
-            "version": "1.0.0",
+            "version": "2.0.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/consolidation-org/output-formatters.git",
-                "reference": "6428d8fb30c9ed3b96314580808b3e4415b46dd9"
+                "url": "https://github.com/consolidation/output-formatters.git",
+                "reference": "42fedb697d47e4c3657238e48d1098d5c18e7286"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/consolidation-org/output-formatters/zipball/6428d8fb30c9ed3b96314580808b3e4415b46dd9",
-                "reference": "6428d8fb30c9ed3b96314580808b3e4415b46dd9",
+                "url": "https://api.github.com/repos/consolidation/output-formatters/zipball/42fedb697d47e4c3657238e48d1098d5c18e7286",
+                "reference": "42fedb697d47e4c3657238e48d1098d5c18e7286",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.4.0",
-                "symfony/console": "~2.5|~3.0"
+                "symfony/console": "~2.5|~3.0",
+                "symfony/finder": "~2.5|~3.0"
             },
             "require-dev": {
                 "phpunit/phpunit": "4.*",
@@ -85,7 +86,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.x-dev"
+                    "dev-master": "2.x-dev"
                 }
             },
             "autoload": {
@@ -104,7 +105,7 @@
                 }
             ],
             "description": "Format text by applying transformations provided by plug-in formatters.",
-            "time": "2016-05-20 04:17:55"
+            "time": "2016-10-01 14:58:50"
         },
         {
             "name": "dnoegel/php-xdg-base-dir",
@@ -228,16 +229,16 @@
         },
         {
             "name": "nikic/php-parser",
-            "version": "v2.1.0",
+            "version": "v2.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "47b254ea51f1d6d5dc04b9b299e88346bf2369e3"
+                "reference": "4dd659edadffdc2143e4753df655d866dbfeedf0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/47b254ea51f1d6d5dc04b9b299e88346bf2369e3",
-                "reference": "47b254ea51f1d6d5dc04b9b299e88346bf2369e3",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/4dd659edadffdc2143e4753df655d866dbfeedf0",
+                "reference": "4dd659edadffdc2143e4753df655d866dbfeedf0",
                 "shasum": ""
             },
             "require": {
@@ -275,7 +276,7 @@
                 "parser",
                 "php"
             ],
-            "time": "2016-04-19 13:41:41"
+            "time": "2016-09-16 12:04:44"
         },
         {
             "name": "pear/console_table",
@@ -383,22 +384,30 @@
         },
         {
             "name": "psr/log",
-            "version": "1.0.0",
+            "version": "1.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-fig/log.git",
-                "reference": "fe0936ee26643249e916849d48e3a51d5f5e278b"
+                "reference": "5277094ed527a1c4477177d102fe4c53551953e0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/log/zipball/fe0936ee26643249e916849d48e3a51d5f5e278b",
-                "reference": "fe0936ee26643249e916849d48e3a51d5f5e278b",
+                "url": "https://api.github.com/repos/php-fig/log/zipball/5277094ed527a1c4477177d102fe4c53551953e0",
+                "reference": "5277094ed527a1c4477177d102fe4c53551953e0",
                 "shasum": ""
             },
+            "require": {
+                "php": ">=5.3.0"
+            },
             "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0.x-dev"
+                }
+            },
             "autoload": {
-                "psr-0": {
-                    "Psr\\Log\\": ""
+                "psr-4": {
+                    "Psr\\Log\\": "Psr/Log/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -412,12 +421,13 @@
                 }
             ],
             "description": "Common interface for logging libraries",
+            "homepage": "https://github.com/php-fig/log",
             "keywords": [
                 "log",
                 "psr",
                 "psr-3"
             ],
-            "time": "2012-12-21 11:40:51"
+            "time": "2016-09-19 16:02:08"
         },
         {
             "name": "psy/psysh",
