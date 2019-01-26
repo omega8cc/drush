@@ -77,12 +77,7 @@ function find_wrapper_or_launcher_in_vicinity($location) {
   $sep = DIRECTORY_SEPARATOR;
   $drush_locations = [
     "",
-    "vendor{$sep}bin/",
-    "..{$sep}vendor{$sep}bin{$sep}",
-    "sites{$sep}all{$sep}vendor{$sep}bin{$sep}",
-    "sites{$sep}all{$sep}vendor{$sep}drush{$sep}drush{$sep}",
-    "sites{$sep}all{$sep}drush{$sep}drush{$sep}",
-    "drush{$sep}drush{$sep}",
+    "tools{$sep}drush{$sep}",
   ];
 
   return find_wrapper_or_launcher_in_specific_locations($location, $drush_locations);
