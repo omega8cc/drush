@@ -10,6 +10,7 @@
  * @see includes/bootstrap.inc
  */
 
+use Drush\Drush;
 use Drush\Log\LogLevel;
 use Webmozart\PathUtil\Path;
 
@@ -138,6 +139,10 @@ function drush_cwd() {
 
   // Save original working dir case some command wants it.
   drush_set_context('DRUSH_OLDCWD', $path);
+
+  // Make a read-only copy of the original cwd at env.cwd
+  // for forwards-compatibility
+  drush_set_option('env.cwd', $path);
 
   return $path;
 }
@@ -610,9 +615,7 @@ function _drush_test_os($os, $os_list_to_check) {
  * Read the drush info file.
  */
 function drush_read_drush_info() {
-  $drush_info_file = dirname(__FILE__) . '/../drush.info';
-
-  return parse_ini_file($drush_info_file);
+  return Drush::ReadDrushInfo();
 }
 
 /**

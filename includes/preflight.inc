@@ -5,6 +5,7 @@
  * Preflight, postflight and shutdown code.
  */
 
+use Drush\Drush;
 use Drush\Log\LogLevel;
 
 /**
@@ -143,6 +144,10 @@ function drush_preflight_prepare() {
   drush_set_context('DRUSH_VENDOR_PATH', dirname($vendor_path));
   drush_set_context('DRUSH_CLASSLOADER', $classloader);
 
+  // Make a read-only copy of the vendor path at drush.vendor-dir
+  // for forwards-compatibility
+  drush_set_option('drush.vendor-dir', dirname($vendor_path));
+
   // Can't log until we have a logger, so we'll create this ASAP.
   _drush_create_default_logger();
 
@@ -165,16 +170,19 @@ function drush_preflight_prepare() {
     return; // An error was logged.
   }
 
-  $drush_info = drush_read_drush_info();
-  define('DRUSH_VERSION', $drush_info['drush_version']);
-  $version_parts = explode('.', DRUSH_VERSION);
-  define('DRUSH_MAJOR_VERSION', $version_parts[0]);
-  define('DRUSH_MINOR_VERSION', $version_parts[1]);
+  // For backwards compatibility. Prefer the static accessors.
+  define('DRUSH_VERSION', Drush::getVersion());
+  define('DRUSH_MAJOR_VERSION', Drush::getMajorVersion());
+  define('DRUSH_MINOR_VERSION', Drush::getMinorVersion());
 
   define('DRUSH_REQUEST_TIME', microtime(TRUE));
 
   drush_set_context('argc', $GLOBALS['argc']);
   drush_set_context('argv', $GLOBALS['argv']);
+
+  // Make a read-only copy of the arguments at runtime.argv
+  // for forwards-compatibility
+  drush_set_option('runtime.argv', $GLOBALS['argv']);
 
   // Set an error handler and a shutdown function
   set_error_handler('drush_error_handler');
