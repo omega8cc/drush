@@ -164,7 +164,7 @@ function drush_search_reindex() {
     return drush_user_abort();
   }
 
-  if (drush_drupal_major_version() == 8) {
+  if (drush_drupal_major_version() >= 8) {
     // D8 CR: https://www.drupal.org/node/2326575
     $search_page_repository = \Drupal::service('search.search_page_repository');
     foreach ($search_page_repository->getIndexableSearchPages() as $entity) {
