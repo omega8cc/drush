@@ -103,7 +103,7 @@ class SanitizeCommands {
     $this->setWrap();
     $this->sanitizeSessions();
 
-    if ($major_version >= 8) {
+    if ($major_version == 8) {
       $this->sanitizeComments();
       $this->sanitizeUserFields();
     }

@@ -133,7 +133,7 @@ class sqlSyncTest extends CommandUnishTestCase {
     $this->assertEquals($name, $row[0]);
 
     // TODO: Make this >= 8 once the --sanitize option is fixed on Drupal 9
-    if (UNISH_DRUPAL_MAJOR_VERSION >= 8) {
+    if (UNISH_DRUPAL_MAJOR_VERSION == 8) {
       // Assert that field_user_telephone DOES contain "5555555555".
       $this->assertUserFieldContents('field_user_telephone', '5555555555', $options, TRUE);
 
