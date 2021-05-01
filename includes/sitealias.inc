@@ -2262,7 +2262,6 @@ function drush_sitealias_get_envar_filename($filename_prefix = 'drush-drupal-sit
   }
   if (!is_dir($ztmp)) {
     $ztmp = '/tmp'; // Our fallback plan.
-    drush_log(dt("Using /tmp in drush_sitealias_get_envar_filename."), LogLevel::OK);
   }
   $tmp = getenv('TMPDIR') ? getenv('TMPDIR') : $ztmp;
   $username = drush_get_username();
