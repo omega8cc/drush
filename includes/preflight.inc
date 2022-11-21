@@ -511,7 +511,7 @@ function _drush_find_commandfiles_drush() {
   // User commands, specified by 'include' option
   $include = drush_get_context('DRUSH_INCLUDE', array());
   foreach ($include as $path) {
-    drush_print(dt('DRUSH_INCLUDE: ') . $path);
+    // drush_print(dt('DRUSH_INCLUDE: ') . $path);
     if (is_dir($path)) {
       drush_log('Include ' . $path, LogLevel::NOTICE);
       $searchpath[] = $path;
