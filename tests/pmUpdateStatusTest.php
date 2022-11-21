@@ -115,7 +115,7 @@ class pmUpdateStatus extends CommandUnishTestCase {
       'devel-1.5',
       'foo',
     );
-    $this->drush('pm-updatestatus', $args, $options);
+    $this->drush('pm-updatestatus', $args = [], $options = []);
     $parsed = $this->parse_backend_output($this->getOutput());
     $data = $parsed['object'];
 

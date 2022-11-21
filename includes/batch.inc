@@ -24,8 +24,6 @@
  * implementations.
  */
 
-use Drush\Log\LogLevel;
-
 /**
  * Class extending ArrayObject to allow the batch API to perform logging when
  * some keys of the array change.
@@ -78,7 +76,7 @@ function drush_backend_batch_process($command = 'batch-process', $args = array()
   $options['u'] = drush_user_get_class()->getCurrentUserAsSingle()->id();
 
   drush_include_engine('drupal', 'batch');
-  _drush_backend_batch_process($command, $args, $options);
+  _drush_backend_batch_process($command, $args = [], $options = []);
 }
 
 /**

@@ -17,7 +17,7 @@ use Drush\Log\LogLevel;
  * @param array $args
  * @param array $options
  */
-function _drush_backend_batch_process($command, $args, $options) {
+function _drush_backend_batch_process($command, $args = [], $options = []) {
   $batch =& batch_get();
 
   if (isset($batch)) {

@@ -17,7 +17,7 @@ use Drush\Log\LogLevel;
  * @param array $args
  * @param array $options
  */
-function _drush_backend_batch_process($command, $args, $options) {
+function _drush_backend_batch_process($command, $args = [], $options = []) {
   $batch =& batch_get();
 
   if (isset($batch)) {
@@ -38,7 +38,7 @@ function _drush_backend_batch_process($command, $args, $options) {
     $finished = FALSE;
 
     while (!$finished) {
-      $data = drush_invoke_process('@self', $command, $args, $options);
+      $data = drush_invoke_process('@self', $command, $args = [], $options = []);
       $finished = drush_get_error() || !$data || (isset($data['context']['drush_batch_process_finished']) && $data['context']['drush_batch_process_finished'] == TRUE);
     }
   }
