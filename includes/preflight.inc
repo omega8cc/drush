@@ -430,21 +430,6 @@ function _drush_preflight_global_options() {
  * work with unit tests.
  */
 function _drush_preflight_base_environment() {
-  // Copy ETC_PREFIX and SHARE_PREFIX from environment variables if available.
-  // This alters where we check for server-wide config and alias files.
-  // Used by unit test suite to provide a clean environment.
-  // BOA restriction
-  //if (getenv('ETC_PREFIX')) drush_set_context('ETC_PREFIX', getenv('ETC_PREFIX'));
-  //if (getenv('SHARE_PREFIX')) drush_set_context('SHARE_PREFIX', getenv('SHARE_PREFIX'));
-
-  // BOA restriction
-  //$default_prefix_configuration = drush_is_windows() ? getenv('ALLUSERSPROFILE') . '/Drush' : '';
-  //$default_prefix_commandfile = drush_is_windows() ? getenv('ALLUSERSPROFILE') . '/Drush' : '/usr';
-  //$site_wide_configuration_dir = drush_get_context('ETC_PREFIX', $default_prefix_configuration) . '/etc/drush';
-  //$site_wide_commandfile_dir = drush_get_context('SHARE_PREFIX', $default_prefix_commandfile) . '/share/drush/commands';
-  //drush_set_context('DRUSH_SITE_WIDE_CONFIGURATION', $site_wide_configuration_dir);
-  //drush_set_context('DRUSH_SITE_WIDE_COMMANDFILES', $site_wide_commandfile_dir);
-
   $server_home = drush_server_home();
   if (isset($server_home)) {
     drush_set_context('DRUSH_PER_USER_CONFIGURATION', $server_home . '/.drush');
@@ -493,12 +478,7 @@ function _drush_preflight_columns() {
 
 function _drush_preflight_alias_path() {
   $alias_path =& drush_get_context('ALIAS_PATH');
-  $default_prefix_configuration = drush_is_windows() ? getenv('ALLUSERSPROFILE') . '/Drush' : '';
-  $site_wide_configuration_dir = drush_get_context('ETC_PREFIX', $default_prefix_configuration) . '/etc/drush';
-  $alias_path[] = drush_sitealias_alias_base_directory($site_wide_configuration_dir);
-
   $alias_path[] = drush_sitealias_alias_base_directory(dirname(__FILE__) . '/..');
-
   $server_home = drush_server_home();
   if (isset($server_home)) {
     $alias_path[] = drush_sitealias_alias_base_directory($server_home . '/.drush');
@@ -531,6 +511,7 @@ function _drush_find_commandfiles_drush() {
   // User commands, specified by 'include' option
   $include = drush_get_context('DRUSH_INCLUDE', array());
   foreach ($include as $path) {
+    drush_print(dt('DRUSH_INCLUDE: ') . $path);
     if (is_dir($path)) {
       drush_log('Include ' . $path, LogLevel::NOTICE);
       $searchpath[] = $path;
@@ -538,12 +519,6 @@ function _drush_find_commandfiles_drush() {
   }
 
   if (!drush_get_option('local')) {
-    // System commands, residing in $SHARE_PREFIX/share/drush/commands
-    $share_path = drush_get_context('DRUSH_SITE_WIDE_COMMANDFILES');
-    if (is_dir($share_path)) {
-      $searchpath[] = $share_path;
-    }
-
     // User commands, residing in ~/.drush
     $per_user_config_dir = drush_get_context('DRUSH_PER_USER_CONFIGURATION');
     if (!empty($per_user_config_dir)) {
