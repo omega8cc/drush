@@ -61,7 +61,7 @@ class PreflightVerify
      */
     protected function checkPhpIni()
     {
-        $ini_checks = ['safe_mode' => '', 'open_basedir' => ''];
+        $ini_checks = ['safe_mode' => '', 'x_open_basedir' => ''];
 
         // Test to insure that certain php ini restrictions have not been enabled
         $prohibited_list = [];
