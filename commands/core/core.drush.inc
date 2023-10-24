@@ -1375,7 +1375,12 @@ function drush_core_twig_compile() {
     $ignored_modules[] = $cached->data;
   }
   foreach (array_diff(drush_module_list(), $ignored_modules) as $module) {
-    $searchpaths[] = drupal_get_path('module', $module);
+    if (drush_drupal_major_version() <= 9) {
+      $searchpaths[] = drupal_get_path('module', $module);
+    }
+    else {
+      $searchpaths[] = \Drupal::service('extension.list.module')->getPath($module);
+    }
   }
 
   $themes = drush_theme_list();

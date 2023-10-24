@@ -157,7 +157,12 @@ abstract class DrupalBoot extends BaseBoot {
           $ignored_modules[] = $cached->data;
         }
         foreach (array_diff(drush_module_list(), $ignored_modules) as $module) {
-          $filepath = drupal_get_path('module', $module);
+          if (drush_drupal_major_version() <= 9) {
+            $filepath = drupal_get_path('module', $module);
+          }
+          else {
+            $filepath = \Drupal::service('extension.list.module')->getPath($module);
+          }
           if ($filepath && $filepath != '/') {
             $searchpath[] = $filepath;
           }
@@ -165,7 +170,13 @@ abstract class DrupalBoot extends BaseBoot {
 
         // Check all enabled themes including non-default and non-admin.
         foreach (drush_theme_list() as $key => $value) {
-          $searchpath[] = drupal_get_path('theme', $key);
+          if (drush_drupal_major_version() <= 9) {
+            $searchpath[] = drupal_get_path('theme', $key);
+          }
+          else {
+            $searchpath[] = \Drupal::service('extension.list.theme')->getPath($key);
+          }
+
         }
         break;
     }
