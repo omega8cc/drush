@@ -85,7 +85,7 @@ function drush_cli_core_cli() {
   // parent process after, there is no connection. This will be called after the
   // command in preflight still, but the subscriber instances are already
   // created from before. Call terminate() regardless, this is a no-op for all
-  // DrupalBoot classes except DrupalBoot8.
+  // DrupalBoot classes except DrupalBoot8/9/10.
   if ($bootstrap = drush_get_bootstrap_object()) {
     $bootstrap->terminate();
   }

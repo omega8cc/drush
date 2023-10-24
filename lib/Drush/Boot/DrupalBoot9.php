@@ -10,7 +10,7 @@ use Drush\Drupal\DrushServiceModifier;
 
 use Drush\Log\LogLevel;
 
-class DrupalBoot8 extends DrupalBoot {
+class DrupalBoot9 extends DrupalBoot {
 
   /**
    * @var \Drupal\Core\DrupalKernelInterface
@@ -142,7 +142,7 @@ class DrupalBoot8 extends DrupalBoot {
   }
 
   function bootstrap_drupal_full() {
-    drush_log(dt('About to bootstrap the Drupal 8 Kernel.'), LogLevel::DEBUG);
+    drush_log(dt('About to bootstrap the Drupal 9 Kernel.'), LogLevel::DEBUG);
     // TODO: do we need to do ob_start any longer?
     if (!drush_get_context('DRUSH_QUIET', FALSE)) {
       ob_start();
@@ -157,7 +157,7 @@ class DrupalBoot8 extends DrupalBoot {
     if (!drush_get_context('DRUSH_QUIET', FALSE)) {
       ob_end_clean();
     }
-    drush_log(dt('Finished bootstraping the Drupal 8 Kernel.'), LogLevel::DEBUG);
+    drush_log(dt('Finished bootstraping the Drupal 9 Kernel.'), LogLevel::DEBUG);
 
     parent::bootstrap_drupal_full();
 

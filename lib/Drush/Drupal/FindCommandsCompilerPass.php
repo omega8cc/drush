@@ -10,7 +10,7 @@ use Symfony\Component\DependencyInjection\Reference;
  * This compiler pass is added to Drupal's ContainerBuilder by our own
  * subclass of DrupalKernel.  Our DrupalKernel subclass knows which
  * compiler passes to add because they are registered to it via its
- * 'alter()' method. This happens in DrupalBoot8 immediately after the
+ * 'alter()' method. This happens in DrupalBoot8/9/10 immediately after the
  * DrupalKernel object is created.
  *
  * Having been thus added, this compiler pass will then be called during
