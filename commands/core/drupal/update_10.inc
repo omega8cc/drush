@@ -106,7 +106,7 @@ function drush_update_do_one($module, $number, $dependency_map,  &$context) {
       drupal_set_installed_schema_version($module, $number);
     }
     else {
-      $package->schema_version = \Drupal::service('update.update_hook_registry')->setInstalledVersion($module, $number);
+      \Drupal::service('update.update_hook_registry')->setInstalledVersion($module, $number);
     }
   }
 
@@ -275,7 +275,7 @@ function drush_update_batch() {
           drupal_set_installed_schema_version($update['module'], $update['number'] - 1);
         }
         else {
-          $package->schema_version = \Drupal::service('update.update_hook_registry')->setInstalledVersion($update['module'], $update['number'] - 1);
+          \Drupal::service('update.update_hook_registry')->setInstalledVersion($update['module'], $update['number'] - 1);
         }
         unset($start[$update['module']]);
       }
