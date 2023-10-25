@@ -101,7 +101,12 @@ function drush_update_do_one($module, $number, $dependency_map,  &$context) {
 
   // Record the schema update if it was completed successfully.
   if ($context['finished'] == 1 && empty($ret['#abort'])) {
-    drupal_set_installed_schema_version($module, $number);
+    if (drush_drupal_major_version() <= 9) {
+      drupal_set_installed_schema_version($module, $number);
+    }
+    else {
+      $package->schema_version = \Drupal::service('update.update_hook_registry')->setInstalledVersion($module, $number)
+    }
   }
 
   $context['message'] = 'Performing ' . $function;
@@ -265,7 +270,12 @@ function drush_update_batch() {
       // correct place. (The updates are already sorted, so we can simply base
       // this on the first one we come across in the above foreach loop.)
       if (isset($start[$update['module']])) {
-        drupal_set_installed_schema_version($update['module'], $update['number'] - 1);
+        if (drush_drupal_major_version() <= 9) {
+          drupal_set_installed_schema_version($update['module'], $update['number'] - 1);
+        }
+        else {
+          $package->schema_version = \Drupal::service('update.update_hook_registry')->setInstalledVersion($update['module'], $update['number'] - 1)
+        }
         unset($start[$update['module']]);
       }
       // Add this update function to the batch.
