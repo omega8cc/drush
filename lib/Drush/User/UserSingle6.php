@@ -2,7 +2,7 @@
 
 namespace Drush\User;
 
-class UserSingle6 extends UserSingle7 {
+class UserSingle6 extends UserSingleBase {
 
   public function cancel() {
     user_delete(array(), $this->account->uid);
