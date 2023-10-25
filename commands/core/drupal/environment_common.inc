@@ -31,7 +31,12 @@ function drush_get_modules($include_hidden = TRUE) {
       unset($modules[$key]);
     }
     else {
-      $module->schema_version = drupal_get_installed_schema_version($key);
+      if (drush_drupal_major_version() <= 9) {
+        $module->schema_version = drupal_get_installed_schema_version($key);
+      }
+      else {
+        $module->schema_version = \Drupal::service('update.update_hook_registry')->getInstalledVersion($key);
+      }
     }
   }
 
