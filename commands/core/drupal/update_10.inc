@@ -8,6 +8,9 @@
  */
 
 use Drush\Log\LogLevel;
+use Drupal\Core\Database\Database;
+use Drupal\Core\Utility\Error;
+use Drupal\Core\Entity\EntityStorageException;
 
 /**
  * Drupal's update.inc has functions that are in previous update_X.inc files
@@ -16,8 +19,6 @@ use Drush\Log\LogLevel;
  */
 require_once DRUSH_DRUPAL_CORE . '/includes/update.inc';
 
-use Drupal\Core\Utility\Error;
-use Drupal\Core\Entity\EntityStorageException;
 /**
  * Perform one update and store the results which will later be displayed on
  * the finished page.
