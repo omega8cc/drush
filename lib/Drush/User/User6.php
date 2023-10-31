@@ -2,7 +2,7 @@
 
 namespace Drush\User;
 
-class User6 extends UserVersion {
+class User6 extends User7 {
 
   /**
    * {inheritdoc}
