@@ -121,7 +121,7 @@ abstract class SqlBase implements ConfigAwareInterface
         $driver = $db_spec['driver'];
         $class_name = 'Drush\Sql\Sql' . ucfirst($driver);
         if (class_exists($class_name)) {
-            $instance = new $class_name($db_spec, $options);
+            $instance = method_exists($class_name, 'make') ? $class_name::make($db_spec, $options) : new $class_name($db_spec, $options);
             // Inject config
             $instance->setConfig(Drush::config());
             return $instance;
@@ -296,6 +296,7 @@ abstract class SqlBase implements ConfigAwareInterface
             return $this->alwaysQuery($query, $input_file, $result_file);
         }
         $this->logQueryInDebugMode($query, $input_file);
+        return true;
     }
 
     /**
@@ -323,7 +324,7 @@ abstract class SqlBase implements ConfigAwareInterface
             $process->run();
             $this->setProcess($process);
             if ($process->isSuccessful()) {
-                $input_file = trim($input_file, '.gz');
+                $input_file = preg_replace('/\.gz$/i', '', $input_file);
             } else {
                 Drush::logger()->error(dt('Failed to decompress input file.'));
                 return false;

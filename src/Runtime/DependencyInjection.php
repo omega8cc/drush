@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drush\Runtime;
 
+use Drush\Formatters\EntityToArraySimplifier;
 use Drush\Log\Logger;
 use League\Container\Container;
 use Symfony\Component\Console\Input\StringInput;
@@ -113,7 +114,8 @@ class DependencyInjection
         // @todo not sure that we'll use this. Maybe remove it.
         Robo::addShared($container, 'formatterManager', DrushFormatterManager::class)
             ->addMethodCall('addDefaultFormatters', [])
-            ->addMethodCall('addDefaultSimplifiers', []);
+            ->addMethodCall('addDefaultSimplifiers', [])
+            ->addMethodCall('addSimplifier', [new EntityToArraySimplifier()]);
 
         // Add some of our own objects to the container
         Robo::addShared($container, 'service.manager', 'Drush\Runtime\ServiceManager')
@@ -131,7 +133,8 @@ class DependencyInjection
         Robo::addShared($container, 'tildeExpansion.hook', 'Drush\Runtime\TildeExpansionHook');
         Robo::addShared($container, 'process.manager', ProcessManager::class)
             ->addMethodCall('setConfig', ['config'])
-            ->addMethodCall('setConfigRuntime', ['config.runtime']);
+            ->addMethodCall('setConfigRuntime', ['config.runtime'])
+            ->addMethodCall('setDrupalFinder', [$drupalFinder]);
         Robo::addShared($container, 'redispatch.hook', 'Drush\Runtime\RedispatchHook')
             ->addArgument('process.manager');
 

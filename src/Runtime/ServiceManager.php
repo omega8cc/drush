@@ -239,7 +239,7 @@ class ServiceManager
      *
      * @param string[] $directoryList List of directories to search
      * @param string $baseNamespace The namespace to use at the base of each
-     *   search diretory. Namespace components mirror directory structure.
+     *   search directory. Namespace components mirror directory structure.
      *
      * @return string[]
      */
@@ -329,8 +329,8 @@ class ServiceManager
                 // "*AwareInterface" used by the handler
                 $this->inflect($drushContainer, $commandHandler);
                 $commandHandlers[] = $commandHandler;
-            } catch (\Exception $e) {
-                $this->logger->debug("Cound not instantiate {class}: {message}", ['class' => $class, 'message' => $e->getMessage()]);
+            } catch (\Throwable $e) {
+                $this->logger->debug("Could not instantiate {class}: {message}", ['class' => $class, 'message' => $e->getMessage()]);
             }
         }
 
