@@ -3,7 +3,7 @@
 namespace Drush\Preflight;
 
 use Drush\Config\Environment;
-use Drush\Preflight\PreflightArgsInterface;
+// use Drush\Preflight\PreflightArgsInterface;
 use Consolidation\SiteAlias\SiteAlias;
 use Consolidation\SiteAlias\SiteAliasManager;
 use Consolidation\SiteAlias\SiteAliasName;
