@@ -28,7 +28,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 // TODO: Not sure if we should have a reference to PreflightArgs here.
 // Maybe these constants should be in config, and PreflightArgs can
 // reference them from there as well.
-// use Drush\Preflight\PreflightArgs;
+use Drush\Preflight\PreflightArgs;
 use Symfony\Component\Process\Process;
 
 /**
