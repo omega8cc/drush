@@ -5,6 +5,7 @@
  */
 
 use Drupal\Core\Database\Database;
+use Drupal\Core\Database\IntegrityConstraintViolationException;
 use Drush\Log\LogLevel;
 
 /**
@@ -41,8 +42,10 @@ function _drush_backend_batch_process($command, $args = [], $options = []) {
                 $batch['id'] = $batch_storage->getId();
             }
             catch (IntegrityConstraintViolationException) {
-                // Remove calls to nextId() once 10.0 is no longer supported.
-                $batch['id'] = \Drupal::database()->nextId();
+                // Batch Storage getId fails due to no default value yet on bid, rather then getting nextID which is
+                // non-existent, retrieve most current batch ID which should contain the necessary updates
+
+                $batch['id'] = _drush_get_last_bid();
             }
         }
         else {
@@ -276,4 +279,19 @@ function _drush_batch_shutdown() {
         $batch_storage = \Drupal::service('batch.storage');
         $batch_storage->update($batch);
     }
+}
+
+/**
+ *
+ * Hack for retrieving last batch for processing prior to update to 10.2
+ */
+
+function _drush_get_last_bid() {
+    $bid = Database::getConnection()->select('batch', 'b')
+        ->fields('b', ['bid'])
+        ->orderBy('timestamp', 'DESC')
+        ->range(0,1)
+        ->execute()
+        ->fetchField();
+    return $bid;
 }
