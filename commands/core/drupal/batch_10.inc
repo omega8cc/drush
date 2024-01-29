@@ -38,20 +38,29 @@ function _drush_backend_batch_process($command, $args = [], $options = []) {
         /** @var \Drupal\Core\Batch\BatchStorageInterface $batch_storage */
         $batch_storage = \Drupal::service('batch.storage');
         if (method_exists($batch_storage, 'getId')) {
-            try {
-                $batch['id'] = $batch_storage->getId();
-            }
-            catch (IntegrityConstraintViolationException) {
-                // Batch Storage getId fails due to no default value yet on bid, rather then getting nextID which is
-                // non-existent, retrieve most current batch ID which should contain the necessary updates
-
-                $batch['id'] = _drush_get_last_bid();
-            }
+          try {
+            $batch['id'] = $batch_storage->getId();
+          }
+          catch (IntegrityConstraintViolationException) {
+            // @todo this is here to support the update path to deprecate
+            // Connection::nextId(). Remove when Drupal 10.1 and lower is no longer
+            // supported.
+            $connection = \Drupal::database();
+            $max_bid = (int) $connection->query('SELECT MAX([bid]) FROM {batch}')->fetchField();
+            $batch['id'] = $max_bid + 1;
+            $connection->insert('batch')
+              ->fields([
+                'bid' => $batch['id'],
+                'timestamp' => \Drupal::time()->getRequestTime(),
+                'token' => '',
+                'batch' => NULL,
+            ])
+            ->execute();
+          }
         }
         else {
-            $batch['id'] = \Drupal::database()->nextId();
+          $batch['id'] = \Drupal::database()->nextId();
         }
-
         $args[] = $batch['id'];
 
         $batch['progressive'] = TRUE;
@@ -281,17 +290,3 @@ function _drush_batch_shutdown() {
     }
 }
 
-/**
- *
- * Hack for retrieving last batch for processing prior to update to 10.2
- */
-
-function _drush_get_last_bid() {
-    $bid = Database::getConnection()->select('batch', 'b')
-        ->fields('b', ['bid'])
-        ->orderBy('timestamp', 'DESC')
-        ->range(0,1)
-        ->execute()
-        ->fetchField();
-    return $bid;
-}
