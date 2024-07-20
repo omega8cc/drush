@@ -116,7 +116,8 @@ if [ -n "$drush_php_ini" ] ; then
   php_options="--php-ini $drush_php_ini"
 fi
 if [ -n "$drush_php_override" ] ; then
-  php_options=`grep '^[a-z_A-Z0-9.]\+ *=' $drush_php_override | sed -e 's|\([^ =]*\) *= *\(.*\)|\1="\2"|' -e 's| ||g' -e 's|^|-d |' | tr '\n\r' '  '`
+  #php_options=`grep '^[a-z_A-Z0-9.]\+ *=' $drush_php_override | sed -e 's|\([^ =]*\) *= *\(.*\)|\1="\2"|' -e 's| ||g' -e 's|^|-d |' | tr '\n\r' '  '`
+  php_options=$(grep '^[a-zA-Z0-9_.]\+ *= *' "$drush_php_override" | sed -e 's|\([^ =]*\) *= *\(.*\)|\1="\2"|' -e 's| ||g' -e 's|^|-d |' | tr '\n\r' '  ')
 fi
 # If the PHP_OPTIONS environment variable is specified, then
 # its contents will be passed to php on the command line as
