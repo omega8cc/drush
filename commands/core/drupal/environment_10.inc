@@ -58,11 +58,11 @@ function drush_check_module_dependencies($modules, $module_info) {
 
 /**
  * Returns an array of modules required by core.
- * 
+ *
  * Deprecated in drupal:9.4.0 and is removed from drupal:10.0.0
  */
-function function drupal_required_modules() {
-   
+function drupal_required_modules() {
+
     $listing = new ExtensionDiscovery(\Drupal::root());
     $files = $listing->scan('module');
     $required = [];
