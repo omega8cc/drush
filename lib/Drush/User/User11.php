@@ -15,6 +15,6 @@ class User11 extends User9 {
       ->getStorage('user')
       ->create($properties);
     $account->save();
-    return new UserSingle10($account);
+    return new UserSingle11($account);
   }
 }

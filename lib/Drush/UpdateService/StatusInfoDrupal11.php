@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Implementation of 'drupal' update_status engine for Drupal 10.
+ * Implementation of 'drupal' update_status engine for Drupal 11.
  */
 
 namespace Drush\UpdateService;
