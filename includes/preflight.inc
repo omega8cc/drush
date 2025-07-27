@@ -511,7 +511,6 @@ function _drush_find_commandfiles_drush() {
   // User commands, specified by 'include' option
   $include = drush_get_context('DRUSH_INCLUDE', array());
   foreach ($include as $path) {
-    // drush_print(dt('DRUSH_INCLUDE: ') . $path);
     if (is_dir($path)) {
       drush_log('Include ' . $path, LogLevel::NOTICE);
       $searchpath[] = $path;
@@ -526,20 +525,16 @@ function _drush_find_commandfiles_drush() {
     }
   }
 
-  // @todo the zero parameter is a bit weird here. It's $phase.
   _drush_add_commandfiles($searchpath, 0);
 
-  // Also discover Drush's own annotation commands.
+  // Discover Drush's own annotation commands.
   $discovery = annotationcommand_adapter_get_discovery();
   $annotation_commandfiles = $discovery->discover(DRUSH_BASE_PATH . '/lib/Drush', '\Drush');
 
-  // And, finally, search for commandfiles in the $searchpath
+  // Discover global extensions.
   $searchpath = array_map(
     function ($item) {
-      if (strtolower(basename($item)) == 'commands') {
-        return dirname($item);
-      }
-      return $item;
+      return (strtolower(basename($item)) == 'commands') ? dirname($item) : $item;
     },
     $searchpath
   );
