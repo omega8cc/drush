@@ -546,6 +546,11 @@ function _drush_find_commandfiles_drush() {
   $global_drush_extensions = $discovery->discover($searchpath, '\Drush');
   $annotation_commandfiles += $global_drush_extensions;
 
+  // Filter out any files under /static/, /distro/, or /platforms/
+  $annotation_commandfiles = array_filter($annotation_commandfiles, function ($path) {
+    return !preg_match('#/(static|distro|platforms)/#i', $path);
+  });
+
   drush_set_context('DRUSH_ANNOTATED_COMMANDFILES', $annotation_commandfiles);
 }
 
