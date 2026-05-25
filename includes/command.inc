@@ -1633,12 +1633,20 @@ function _drush_add_commandfiles($searchpath, $phase = NULL, $reset = FALSE) {
           $dmv = DRUSH_MAJOR_VERSION;
           $files = drush_scan_directory($path, "/\.drush($dmv|)\.inc$/", $nomask);
           foreach ($files as $filename => $info) {
+            // BOA extension filter: skip *.drush.inc under tenant-writable
+            // paths unless the per-Octopus-user CiviCRM opt-in is active and
+            // the basename is on the allowlist. See
+            // includes/boa_extension_filter.inc.
+            $canonical = Path::canonicalize($filename);
+            if (!boa_drush_extension_allowed($canonical)) {
+              continue;
+            }
             $module = basename($filename);
             $module = preg_replace('/\.*drush[0-9]*\.inc/', '', $module);
             // Only try to bootstrap modules that we have never seen before.
             if (!array_key_exists($module, $evaluated) && file_exists($filename)) {
               $evaluated[$module] = TRUE;
-              $list[$module] = Path::canonicalize($filename);
+              $list[$module] = $canonical;
             }
           }
         }
@@ -1650,6 +1658,14 @@ function _drush_add_commandfiles($searchpath, $phase = NULL, $reset = FALSE) {
     // Check to see if the commandfile is valid for this version of Drupal
     // and is still present on filesystem (in case of cached commandfile list).
     foreach ($list as $module => $filename) {
+      // BOA extension filter: re-check at load time so that a stale
+      // commandfile cache (e.g. populated when the CiviCRM control file
+      // was present, then read after it was removed) cannot bypass the
+      // deny set. The check is cheap; canonical paths in $list were
+      // stored at scan time.
+      if (!boa_drush_extension_allowed($filename)) {
+        continue;
+      }
       // Only try to require if the file exists. If not, a file from the
       // command file cache may not be available anymore, in which case
       // we rebuild the cache for this phase.
