@@ -126,6 +126,7 @@ function drush_preflight_prepare() {
   require_once DRUSH_BASE_PATH . '/includes/startup.inc';
   require_once DRUSH_BASE_PATH . '/includes/bootstrap.inc';
   require_once DRUSH_BASE_PATH . '/includes/environment.inc';
+  require_once DRUSH_BASE_PATH . '/includes/boa_extension_filter.inc';
   require_once DRUSH_BASE_PATH . '/includes/annotationcommand_adapter.inc';
   require_once DRUSH_BASE_PATH . '/includes/command.inc';
   require_once DRUSH_BASE_PATH . '/includes/drush.inc';
@@ -541,10 +542,12 @@ function _drush_find_commandfiles_drush() {
   $global_drush_extensions = $discovery->discover($searchpath, '\Drush');
   $annotation_commandfiles += $global_drush_extensions;
 
-  // Filter out any files under /static/, /distro/, or /platforms/
-  $annotation_commandfiles = array_filter($annotation_commandfiles, function ($path) {
-    return !preg_match('#/(static|distro|platforms)/#i', $path);
-  });
+  // Apply the BOA extension filter: deny *.drush.inc under tenant-writable
+  // paths, with a per-Octopus-user CiviCRM opt-in. Single source of truth
+  // in includes/boa_extension_filter.inc; this replaces the earlier loose
+  // regex (!preg_match('#/(static|distro|platforms)/#i', $path)) which
+  // missed several deny families and used unanchored matching.
+  $annotation_commandfiles = array_filter($annotation_commandfiles, 'boa_drush_extension_allowed');
 
   drush_set_context('DRUSH_ANNOTATED_COMMANDFILES', $annotation_commandfiles);
 }
