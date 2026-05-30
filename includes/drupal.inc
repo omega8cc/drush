@@ -65,7 +65,7 @@ function drush_drupal_major_version($drupal_root = NULL) {
   if ($version = drush_drupal_version($drupal_root)) {
     $version_parts = explode('.', $version);
     if (is_numeric($version_parts[0])) {
-      $major_version = (integer)$version_parts[0];
+      $major_version = (int)$version_parts[0];
     }
   }
   return $major_version;
