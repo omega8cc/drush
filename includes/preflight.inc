@@ -771,7 +771,18 @@ function drush_shutdown() {
   if (!drush_get_context('DRUSH_EXECUTION_COMPLETED', FALSE) && !drush_get_context('DRUSH_USER_ABORT', FALSE)) {
     $php_error_message = '';
     if ($error = error_get_last()) {
-      $php_error_message = "\n" . dt('Error: !message in !file, line !line', array('!message' => $error['message'], '!file' => $error['file'], '!line' => $error['line']));
+      // Only a fatal-class error can be the cause of abnormal termination.
+      // error_get_last() also returns non-fatal errors that were merely
+      // recorded — including ones masked by error_reporting (e.g. a PHP 8.x
+      // deprecation from an old vendored library such as psysh, emitted at
+      // autoload and suppressed by error_reporting). Reporting such a
+      // harmless lingering deprecation/notice/warning here would mislabel it
+      // as "the unrecoverable error" and hide the real cause, so we ignore
+      // anything that is not fatal-class.
+      $fatal = E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR | E_USER_ERROR | E_RECOVERABLE_ERROR;
+      if ($error['type'] & $fatal) {
+        $php_error_message = "\n" . dt('Error: !message in !file, line !line', array('!message' => $error['message'], '!file' => $error['file'], '!line' => $error['line']));
+      }
     }
     // We did not reach the end of the drush_main function,
     // this generally means somewhere in the code a call to exit(),
