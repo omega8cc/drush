@@ -122,7 +122,7 @@ class ProcessManager extends ConsolidationProcessManager
      * @return ProcessBase
      *   A wrapper around Symfony Process.
      */
-    public function process($commandline, $cwd = null, array $env = null, $input = null, $timeout = 60)
+    public function process($commandline, $cwd = null, $env = null, $input = null, $timeout = 60)
     {
         $process = parent::process($commandline, $cwd, $env, $input, $timeout);
         return $this->configureProcess($process);
@@ -137,7 +137,7 @@ class ProcessManager extends ConsolidationProcessManager
      * @param int|float|null $timeout The timeout in seconds or null to disable
      * @return Process
      */
-    public function shell($command, $cwd = null, array $env = null, $input = null, $timeout = 60)
+    public function shell($command, $cwd = null, $env = null, $input = null, $timeout = 60)
     {
         $process = parent::shell($command, $cwd, $env, $input, $timeout);
         return $this->configureProcess($process);

@@ -318,7 +318,7 @@ class Drush
      * @return ProcessBase
      *   A wrapper around Symfony Process.
      */
-    public static function process($commandline, $cwd = null, array $env = null, $input = null, $timeout = 60)
+    public static function process($commandline, $cwd = null, $env = null, $input = null, $timeout = 60)
     {
         return static::processManager()->process($commandline, $cwd, $env, $input, $timeout);
     }
@@ -335,7 +335,7 @@ class Drush
      * @param int|float|null $timeout The timeout in seconds or null to disable
      * @return Process
      */
-    public static function shell($command, $cwd = null, array $env = null, $input = null, $timeout = 60)
+    public static function shell($command, $cwd = null, $env = null, $input = null, $timeout = 60)
     {
         return static::processManager()->shell($command, $cwd, $env, $input, $timeout);
     }
