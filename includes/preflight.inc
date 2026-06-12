@@ -547,7 +547,10 @@ function _drush_find_commandfiles_drush() {
   // in includes/boa_extension_filter.inc; this replaces the earlier loose
   // regex (!preg_match('#/(static|distro|platforms)/#i', $path)) which
   // missed several deny families and used unanchored matching.
-  $annotation_commandfiles = array_filter($annotation_commandfiles, 'boa_drush_extension_allowed');
+  // This array is keyed BY PATH with class names as values, so filter on the
+  // KEY (ARRAY_FILTER_USE_KEY) — filtering the value would test a class name
+  // against the path patterns and be a silent no-op.
+  $annotation_commandfiles = array_filter($annotation_commandfiles, 'boa_drush_extension_allowed', ARRAY_FILTER_USE_KEY);
 
   drush_set_context('DRUSH_ANNOTATED_COMMANDFILES', $annotation_commandfiles);
 }

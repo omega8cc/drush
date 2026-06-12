@@ -148,7 +148,10 @@ function annotationcommand_adapter_discover($searchpath, $phase = false, $phase_
   // results so a stale cache cannot bypass the deny set. See
   // includes/boa_extension_filter.inc. Relevant in practice only for D6/D7
   // — D8+ short-circuits this function at the top via the SITE+ guard.
-  $annotation_commandfiles = array_filter($annotation_commandfiles, 'boa_drush_extension_allowed');
+  // NOTE: this array is keyed BY PATH with class names as values, so we must
+  // filter on the KEY (ARRAY_FILTER_USE_KEY) — filtering the value would test
+  // a class name against the path patterns and be a silent no-op.
+  $annotation_commandfiles = array_filter($annotation_commandfiles, 'boa_drush_extension_allowed', ARRAY_FILTER_USE_KEY);
   drush_set_context(
     'DRUSH_ANNOTATED_COMMANDFILES',
     array_merge(
