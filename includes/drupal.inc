@@ -21,8 +21,33 @@ function drush_drupal_load_autoloader($drupal_root) {
       // "Point autoload.php to the proper vendor directory" - https://www.drupal.org/node/2404989
       $autoloader = drush_get_context('DRUSH_CLASSLOADER');
     }
+    // The Composer autoloader just required registered itself PREPENDED,
+    // so it now outranks Drush's own loader for every namespace both
+    // codebases define -- and Composer-built platforms bundle modern
+    // Drush. Letting the platform serve Drush\* classes into this
+    // process mixes two incompatible codebases (observed fatals:
+    // Drush\Drupal\DrupalKernel::addServiceModifier() undefined,
+    // Drush\Sql\Sqlmysql::command() declaration mismatch -- which class
+    // wins depended on first-touch order per command flow). Re-assert
+    // authority over our own prefix with a loader that serves Drush\*
+    // strictly from this Drush's lib/ and stays ahead of the platform's.
+    spl_autoload_register('_drush_own_prefix_autoload', TRUE, TRUE);
   }
   return $autoloader;
+}
+
+/**
+ * Serve Drush\* classes from this Drush's own lib/ ahead of any platform
+ * autoloader. Classes outside lib/ fall through to the normal chain.
+ */
+function _drush_own_prefix_autoload($class) {
+  if (strpos($class, 'Drush\\') !== 0) {
+    return;
+  }
+  $file = DRUSH_BASE_PATH . '/lib/' . str_replace('\\', '/', $class) . '.php';
+  if (is_file($file)) {
+    require $file;
+  }
 }
 
 /**

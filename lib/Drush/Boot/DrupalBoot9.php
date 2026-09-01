@@ -130,7 +130,15 @@ class DrupalBoot9 extends DrupalBoot {
       $this->kernel = DrushDrupalKernel::createFromRequest($this->request, $classloader, 'prod');
     }
     // @see Drush\Drupal\DrupalKernel::addServiceModifier()
-    $this->kernel->addServiceModifier(new DrushServiceModifier());
+    if (method_exists($this->kernel, 'addServiceModifier')) {
+      $this->kernel->addServiceModifier(new DrushServiceModifier());
+    }
+    else {
+      // A platform-bundled Drush class won the binding before ours could;
+      // proceed without the modifier rather than fatal - module-provided
+      // Drush command services are not used on this bootstrap path.
+      drush_log(dt('Kernel lacks addServiceModifier(); continuing without the Drush service modifier.'), LogLevel::DEBUG);
+    }
 
     // Unset drupal error handler and restore Drush's one.
     restore_error_handler();
