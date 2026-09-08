@@ -228,7 +228,13 @@ function _drush_sitealias_prepare_record($alias_record) {
   // set, in which case we will leave the 'databases' record instead).
   if (isset($output_db_url)) {
     if (!isset($alias_record['db-url'])) {
-      $alias_record['db-url'] = drush_sitealias_convert_databases_to_db_url($alias_record['databases']);
+      $db_url = NULL;
+      if (isset($alias_record['databases'])) {
+        $db_url = drush_sitealias_convert_databases_to_db_url($alias_record['databases']);
+      }
+      if (isset($db_url)) {
+        $alias_record['db-url'] = $db_url;
+      }
     }
     unset($alias_record['databases']);
   }

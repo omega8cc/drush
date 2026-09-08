@@ -959,6 +959,13 @@ function drush_sitealias_convert_db_spec_to_db_url($db_spec) {
  * Create a db-url from the databases record.
  */
 function drush_sitealias_convert_databases_to_db_url($databases) {
+  $result = NULL;
+  // A record without database settings (a Backdrop site, a site whose
+  // settings the caller cannot read) arrives here as NULL, and count(NULL)
+  // is a TypeError on PHP 8: there is no db-url to derive, say so.
+  if (!is_array($databases) || empty($databases)) {
+    return $result;
+  }
   if ((count($databases) == 1) && isset($databases['default'])) {
     $result = drush_sitealias_convert_db_spec_to_db_url($databases['default']['default']);
   }
