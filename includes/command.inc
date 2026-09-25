@@ -1606,7 +1606,7 @@ function _drush_add_commandfiles($searchpath, $phase = NULL, $reset = FALSE) {
       // Assemble a cid specific to the bootstrap phase and searchpaths.
       // Bump $cf_version when making a change to a dev version of Drush
       // that invalidates the commandfile cache.
-      $cf_version = 8;
+      $cf_version = 9;
       $cid = drush_get_cid('commandfiles-' . $phase, array(), array_merge($searchpath, array($cf_version)));
       $command_cache = drush_cache_get($cid);
       if (isset($command_cache->data)) {
@@ -1643,6 +1643,9 @@ function _drush_add_commandfiles($searchpath, $phase = NULL, $reset = FALSE) {
             }
             $module = basename($filename);
             $module = preg_replace('/\.*drush[0-9]*\.inc/', '', $module);
+            if ($phase == DRUSH_BOOTSTRAP_DRUPAL_FULL && _drush_commandfile_extension_disabled($module, $filename, $path)) {
+              continue;
+            }
             // Only try to bootstrap modules that we have never seen before.
             if (!array_key_exists($module, $evaluated) && file_exists($filename)) {
               $evaluated[$module] = TRUE;
@@ -1685,6 +1688,52 @@ function _drush_add_commandfiles($searchpath, $phase = NULL, $reset = FALSE) {
     if ($needs_sort) {
       commandfiles_cache()->sort();
     }
+  }
+}
+
+/**
+ * Whether a commandfile found at full bootstrap belongs to a Drupal 8+
+ * extension that is not installed.
+ *
+ * The full bootstrap searchpath lists only the directories of enabled
+ * extensions, but the scan recurses into them, so a submodule shipped inside
+ * an enabled module is found too. On Drupal 8+ an extension that is not
+ * installed has neither its classes nor its services registered, so its
+ * commandfile cannot work, and one whose hook_drush_command() fetches the
+ * extension's own service (the #[LegacyHook] form) throws and ends every
+ * command.
+ *
+ * @param string $name
+ *   The commandfile name derived from its file name.
+ * @param string $filename
+ *   The commandfile path, under $root.
+ * @param string $root
+ *   The searchpath directory the commandfile was found in.
+ *
+ * @return bool
+ *   TRUE when $name.info.yml sits in the commandfile's directory or a parent
+ *   of it up to $root and $name is neither an installed module nor an
+ *   installed theme.
+ */
+function _drush_commandfile_extension_disabled($name, $filename, $root) {
+  if (drush_drupal_major_version() < 8) {
+    return FALSE;
+  }
+  $name = preg_replace('/\.d[0-9]+$/', '', $name);
+  $root = rtrim($root, '/');
+  $dir = dirname($filename);
+  while (TRUE) {
+    if (file_exists($dir . '/' . $name . '.info.yml')) {
+      if (drush_module_exists($name)) {
+        return FALSE;
+      }
+      return !array_key_exists($name, drush_theme_list());
+    }
+    $parent = dirname($dir);
+    if ($dir === $root || $parent === $dir || strlen($parent) < strlen($root)) {
+      return FALSE;
+    }
+    $dir = $parent;
   }
 }
 
