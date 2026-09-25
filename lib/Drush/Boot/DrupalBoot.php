@@ -125,7 +125,12 @@ abstract class DrupalBoot extends BaseBoot {
         // instead wait for that phase, which will more carefully add
         // only those Drush commandfiles that are associated with
         // enabled modules.
-        if ($phase_max < DRUSH_BOOTSTRAP_DRUPAL_FULL) {
+        //
+        // Drupal 8+ has no container before the full bootstrap, and an
+        // extension's commandfile may call into it (the #[LegacyHook] form)
+        // or belong to an extension that is not installed, so there they
+        // load at the full bootstrap only.
+        if ($phase_max < DRUSH_BOOTSTRAP_DRUPAL_FULL && drush_drupal_major_version() < 8) {
           $searchpath = array_merge($searchpath, $this->contrib_modules_paths());
 
           // Adding commandfiles located within /profiles. Try to limit to one profile for speed. Note
