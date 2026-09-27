@@ -442,8 +442,9 @@ function drush_find_tmp() {
   if (preg_match("/^\/home/", getenv('HOME')) || preg_match("/^\/data\/disk/", getenv('HOME')) || preg_match("/^\/var\/aegir/", getenv('HOME'))) {
     $temporary_directory = getenv('HOME') . "/.tmp";
   }
-  if (!is_dir($temporary_directory)) {
-    $temporary_directory = FALSE;
+  // NULL, not FALSE: isset() must fail so the lookup below runs.
+  if (isset($temporary_directory) && !is_dir($temporary_directory)) {
+    $temporary_directory = NULL;
   }
 
   if (!isset($temporary_directory)) {
@@ -470,6 +471,7 @@ function drush_find_tmp() {
       }
     }
     else {
+      $tmp = '';
       if (preg_match("/^\/home/", getenv('HOME')) || preg_match("/^\/data\/disk/", getenv('HOME')) || preg_match("/^\/var\/aegir/", getenv('HOME'))) {
         $tmp = getenv('HOME') . "/.tmp";
         $directories[] = Path::canonicalize($tmp);
