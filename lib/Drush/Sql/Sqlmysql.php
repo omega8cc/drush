@@ -129,6 +129,38 @@ EOT;
     return $tables;
   }
 
+  /**
+   * The mysqldump option that keeps the server's GTID state out of a dump.
+   *
+   * By default (--set-gtid-purged=AUTO) a dump taken while the server runs
+   * with GTID on opens with SET @@SESSION.SQL_LOG_BIN=0 and sets
+   * @@GLOBAL.GTID_PURGED. The site's own database user may set neither, so
+   * loading the dump with it (sql-cli, sql-sync) stops with ERROR 1227; as
+   * root the load fails on a server that shares that history (ERROR 3546 on
+   * 8.x, 1840 on 5.7), and where it passes it stays out of the binary log.
+   * OFF writes neither. A mysqldump without the option (MariaDB's) would
+   * refuse it and writes neither anyway, so its help is asked, never
+   * assumed, once per process. An --extra option comes later and wins.
+   *
+   * @return string
+   *   ' --set-gtid-purged=OFF', or '' when mysqldump does not take it.
+   */
+  public function gtidOption() {
+    static $option = NULL;
+    if (!isset($option)) {
+      $option = '';
+      $help = array();
+      exec('mysqldump --help 2>/dev/null', $help);
+      foreach ($help as $line) {
+        if (strpos($line, '--set-gtid-purged') !== FALSE) {
+          $option = ' --set-gtid-purged=OFF';
+          break;
+        }
+      }
+    }
+    return $option;
+  }
+
   public function dumpCmd($table_selection) {
     $parens = FALSE;
     $skip_tables = $table_selection['skip'];
@@ -151,6 +183,7 @@ EOT;
     // We had --skip-add-locks here for a while to help people with insufficient permissions,
     // but removed it because it slows down the import a lot.  See http://drupal.org/node/1283978
     $extra = ' --no-tablespaces --no-autocommit --skip-add-locks --single-transaction --opt -Q';
+    $extra .= $this->gtidOption();
     if (isset($data_only)) {
       $extra .= ' --no-create-info';
     }
