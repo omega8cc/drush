@@ -136,8 +136,10 @@ EOT;
    * with GTID on opens with SET @@SESSION.SQL_LOG_BIN=0 and sets
    * @@GLOBAL.GTID_PURGED. The site's own database user may set neither, so
    * loading the dump with it (sql-cli, sql-sync) stops with ERROR 1227; as
-   * root the load fails on a server that shares that history (ERROR 3546 on
-   * 8.x, 1840 on 5.7), and where it passes it stays out of the binary log.
+   * root the load fails on a server with GTID history of its own (8.x:
+   * ERROR 3546 where the sets overlap; 5.7: ERROR 1840 whenever
+   * GTID_EXECUTED is not empty), and where it passes it stays out of the
+   * binary log.
    * OFF writes neither. A mysqldump without the option (MariaDB's) would
    * refuse it and writes neither anyway, so its help is asked, never
    * assumed, once per process. An --extra option comes later and wins.
