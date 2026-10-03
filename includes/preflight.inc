@@ -365,6 +365,11 @@ function drush_preflight_root() {
   $searchpath = [dirname($root) . '/drush', "$root/drush", "$root/sites/all/drush"];
 
   $drush_root_extensions = $discovery->discover($searchpath, '\Drush');
+  // The BOA extension filter, as at the two other discovery sites: a backend
+  // identity never loads a *Commands.php from a tenant-writable path (the
+  // platform's own drush/Commands/ on a ~/static or ~/distro tree). Keyed by
+  // path, so filter on the key.
+  $drush_root_extensions = array_filter($drush_root_extensions, 'boa_drush_extension_allowed', ARRAY_FILTER_USE_KEY);
   drush_set_context(
     'DRUSH_ANNOTATED_COMMANDFILES',
     array_merge(
