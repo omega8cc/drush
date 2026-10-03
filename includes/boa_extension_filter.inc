@@ -21,10 +21,13 @@
  * filter off entirely — for single-tenant operators who accept re-opening
  * #762138 on that box.
  *
- * Single source of truth for the three discovery call sites:
+ * Single source of truth for the four discovery call sites (*.drush.inc
+ * command files and annotated *Commands.php command classes alike):
  *   includes/command.inc::_drush_add_commandfiles()              (filters the path)
  *   includes/annotationcommand_adapter.inc::annotationcommand_adapter_discover() (ARRAY_FILTER_USE_KEY: keys are paths)
  *   includes/preflight.inc::_drush_find_commandfiles_drush()     (ARRAY_FILTER_USE_KEY: keys are paths)
+ *   includes/preflight.inc::drush_preflight_root()               (ARRAY_FILTER_USE_KEY: the
+ *     <root>/../drush, <root>/drush and sites/all/drush Commands/ classes)
  *
  * Load-bearing trust assumption: /data/disk/<user>/aegir/ is owned by the
  * Octopus system user and is NOT tenant-writable; only /data/disk/<user>/
