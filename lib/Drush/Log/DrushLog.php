@@ -17,7 +17,6 @@
 namespace Drush\Log;
 
 use Drupal\Core\Logger\LogMessageParserInterface;
-use Drupal\Core\Logger\RfcLoggerTrait;
 use Drupal\Core\Logger\RfcLogLevel;
 use Psr\Log\LoggerInterface;
 
@@ -28,10 +27,16 @@ use Psr\Log\LoggerInterface;
  * needlessly replaces Psr\Log\LogLevels with Drupal\Core\Logger\RfcLogLevel.
  * Doing this arguably violates the Psr\Log contract,
  * but we can't help that here -- we just need to convert back.
+ *
+ * The level methods are declared here, untyped, with the RfcLogLevel each
+ * one maps to in core's RfcLoggerTrait, rather than taken from that trait:
+ * since Drupal 10 the trait's abstract log() is typed with ': void', which
+ * an untyped log() cannot match, while a de-typed core and Drupal 8 and 9
+ * have it untyped. An untyped class matches the psr/log 1 interface Drush
+ * binds below PHP 8.0 and the psr/log 2.0 one it binds from 8.0 on, with
+ * any core.
  */
 class DrushLog implements LoggerInterface {
-
-  use RfcLoggerTrait;
 
   /**
    * The message's placeholders parser.
@@ -54,6 +59,62 @@ class DrushLog implements LoggerInterface {
   public function __construct(LogMessageParserInterface $parser, LoggerInterface $logger) {
     $this->parser = $parser;
     $this->logger = $logger;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function emergency($message, array $context = array()) {
+    $this->log(RfcLogLevel::EMERGENCY, $message, $context);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function alert($message, array $context = array()) {
+    $this->log(RfcLogLevel::ALERT, $message, $context);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function critical($message, array $context = array()) {
+    $this->log(RfcLogLevel::CRITICAL, $message, $context);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function error($message, array $context = array()) {
+    $this->log(RfcLogLevel::ERROR, $message, $context);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function warning($message, array $context = array()) {
+    $this->log(RfcLogLevel::WARNING, $message, $context);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function notice($message, array $context = array()) {
+    $this->log(RfcLogLevel::NOTICE, $message, $context);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function info($message, array $context = array()) {
+    $this->log(RfcLogLevel::INFO, $message, $context);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function debug($message, array $context = array()) {
+    $this->log(RfcLogLevel::DEBUG, $message, $context);
   }
 
   /**

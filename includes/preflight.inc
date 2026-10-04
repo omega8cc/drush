@@ -121,6 +121,11 @@ function drush_preflight_prepare() {
     return FALSE;
   }
 
+  // On PHP 8.0 and newer the typed psr/log interface is bound first, before
+  // any autoloader can offer the untyped one (see includes/psr_log.inc).
+  require_once DRUSH_BASE_PATH . '/includes/psr_log.inc';
+  drush_psr_log_bind();
+
   $classloader = require $vendor_path;
 
   require_once DRUSH_BASE_PATH . '/includes/startup.inc';
