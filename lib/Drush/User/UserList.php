@@ -12,10 +12,8 @@ class UserList {
    * or options.
    */
   public function __construct($inputs) {
-    if ($this->accounts = $this->getFromOptions() + $this->getFromParameters($inputs)) {
-      return $this;
-    }
-    else {
+    // A constructor returns nothing; PHP 8.5 deprecates returning a value.
+    if (!($this->accounts = $this->getFromOptions() + $this->getFromParameters($inputs))) {
       throw new UserListException('Unable to find a matching user.');
     }
   }

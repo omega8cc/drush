@@ -198,7 +198,7 @@ function drush_variable_set() {
   if (is_array($value)) {
     $display = "\n" . var_export($value, TRUE);
   }
-  elseif (is_integer($value)) {
+  elseif (is_int($value)) {
     $display = $value;
   }
   elseif (is_bool($value)) {
