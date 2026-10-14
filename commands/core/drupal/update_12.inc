@@ -135,7 +135,11 @@ function drush_update_cache_rebuild() {
 
 function update_main() {
   // In D8, we expect to be in full bootstrap.
-  drush_bootstrap_to_phase(DRUSH_BOOTSTRAP_DRUPAL_FULL);
+  if (!drush_bootstrap_to_phase(DRUSH_BOOTSTRAP_DRUPAL_FULL)) {
+    // The bootstrap set its own error (a kernel that did not boot names
+    // its exception); nothing here may call into a Drupal that is not up.
+    return FALSE;
+  }
 
   require_once DRUPAL_ROOT . '/core/includes/install.inc';
   require_once DRUPAL_ROOT . '/core/includes/update.inc';
@@ -243,7 +247,11 @@ function drush_update_check_requirements() {
 
 function _update_batch_command($id) {
   // In D8, we expect to be in full bootstrap.
-  drush_bootstrap_to_phase(DRUSH_BOOTSTRAP_DRUPAL_FULL);
+  if (!drush_bootstrap_to_phase(DRUSH_BOOTSTRAP_DRUPAL_FULL)) {
+    // The bootstrap set its own error (a kernel that did not boot names
+    // its exception); nothing here may call into a Drupal that is not up.
+    return FALSE;
+  }
 
   drush_batch_command($id);
 }
