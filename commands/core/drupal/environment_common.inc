@@ -238,7 +238,14 @@ function drush_theme_list() {
  *   An array containing theme info for all available themes.
  */
 function drush_get_themes($include_hidden = TRUE) {
-  $themes = \Drupal::service('theme_handler')->rebuildThemeData();
+  $theme_handler = \Drupal::service('theme_handler');
+  if (method_exists($theme_handler, 'rebuildThemeData')) {
+    $themes = $theme_handler->rebuildThemeData();
+  }
+  else {
+    // Drupal 12 removed rebuildThemeData(), which was this very call.
+    $themes = \Drupal::service('extension.list.theme')->reset()->getList();
+  }
   foreach ($themes as $key => $theme) {
     if (!$include_hidden) {
       if (isset($theme->info['hidden'])) {
