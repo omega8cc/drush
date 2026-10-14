@@ -814,11 +814,13 @@ function _drush_core_config_bash_files() {
  */
 function drush_core_requirements() {
   include_once DRUSH_DRUPAL_CORE . '/includes/install.inc';
+  // The values the REQUIREMENT_* constants held up to Drupal 11; Drupal 12
+  // has no such constants.
   $severities = array(
-    REQUIREMENT_INFO => t('Info'),
-    REQUIREMENT_OK => t('OK'),
-    REQUIREMENT_WARNING => t('Warning'),
-    REQUIREMENT_ERROR => t('Error'),
+    -1 => t('Info'),
+    0 => t('OK'),
+    1 => t('Warning'),
+    2 => t('Error'),
   );
 
   drupal_load_updates();
@@ -844,6 +846,10 @@ function drush_core_requirements() {
   $min_severity = drush_get_option('severity', -1);
   foreach($requirements as $key => $info) {
     $severity = array_key_exists('severity', $info) ? $info['severity'] : -1;
+    // Drupal 12 reports a RequirementSeverity case, not its integer.
+    if (is_object($severity) && isset($severity->value)) {
+      $severity = $severity->value;
+    }
     $requirements[$key]['sid'] = $severity;
     $requirements[$key]['severity'] = $severities[$severity];
     if ($severity < $min_severity) {
