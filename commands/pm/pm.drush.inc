@@ -794,6 +794,25 @@ function drush_get_projects(&$extensions = NULL) {
 }
 
 /**
+ * The path of an extension, '' when it is unknown. Drupal 10 removed
+ * drupal_get_path(); its extension path resolver throws on an unknown name.
+ */
+function _drush_pm_extension_path($type, $name) {
+  if (function_exists('drupal_get_path')) {
+    return drupal_get_path($type, $name);
+  }
+  if (!is_string($name) || $name === '') {
+    return '';
+  }
+  try {
+    return \Drupal::service('extension.path.resolver')->getPath($type, $name);
+  }
+  catch (\Exception $e) {
+    return '';
+  }
+}
+
+/**
  * Helper function to find the common path for a list of extensions in the aim to obtain the project name.
  *
  * @param $project_type
@@ -804,7 +823,7 @@ function drush_get_projects(&$extensions = NULL) {
 function _drush_pm_find_common_path($project_type, $extensions) {
   // Select the first path as the candidate to be the common prefix.
   $extension = array_pop($extensions);
-  while (!($path = drupal_get_path($project_type, $extension))) {
+  while (!($path = _drush_pm_extension_path($project_type, $extension))) {
     drush_log(dt('Unknown path for !extension !type.', array('!extension' => $extension, '!type' => $project_type)), LogLevel::WARNING);
     $extension = array_pop($extensions);
   }
@@ -814,7 +833,7 @@ function _drush_pm_find_common_path($project_type, $extensions) {
   if (count($extensions) > 0) {
     // Iterate over the other projects.
     while($extension = array_pop($extensions)) {
-      $path2 = drupal_get_path($project_type, $extension);
+      $path2 = _drush_pm_extension_path($project_type, $extension);
       if (!$path2) {
         drush_log(dt('Unknown path for !extension !type.', array('!extension' => $extension, '!type' => $project_type)), LogLevel::DEBUG);
         continue;
