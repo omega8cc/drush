@@ -14,10 +14,11 @@ class DrushServiceModifier implements ServiceModifierInterface
     public function alter(ContainerBuilder $container) {
         drush_log(dt("service modifier alter"), LogLevel::DEBUG);
         // http://symfony.com/doc/2.7/components/dependency_injection/tags.html#register-the-pass-with-the-container
+        // FindCommandsCompilerPass12 on Drupal 12, the base class before it.
         $container->register('drush.service.consolecommands', 'Drush\Command\ServiceCommandlist');
-        $container->addCompilerPass(new FindCommandsCompilerPass('drush.service.consolecommands', 'drush.command'));
+        $container->addCompilerPass(drush_get_class('Drush\Drupal\FindCommandsCompilerPass', array('drush.service.consolecommands', 'drush.command')));
         $container->register('drush.service.consolidationcommands', 'Drush\Command\ServiceCommandlist');
-        $container->addCompilerPass(new FindCommandsCompilerPass('drush.service.consolidationcommands', 'consolidation.commandhandler'));
+        $container->addCompilerPass(drush_get_class('Drush\Drupal\FindCommandsCompilerPass', array('drush.service.consolidationcommands', 'consolidation.commandhandler')));
     }
   /**
    * Checks existing service definitions for the presence of modification.
