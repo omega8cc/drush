@@ -154,6 +154,11 @@ abstract class DrupalBoot extends BaseBoot {
         // Nothing to do here anymore. Left for documentation.
         break;
       case DRUSH_BOOTSTRAP_DRUPAL_FULL:
+        // A kernel that did not boot (kernel_boot_failed()) has no module
+        // list to ask: the phase stops at its own error.
+        if (drush_get_context('DRUSH_DRUPAL_KERNEL_BOOT_FAILED', FALSE)) {
+          break;
+        }
         // Add enabled module paths, excluding the install profile. Since we are bootstrapped,
         // we can use the Drupal API.
         $ignored_modules = drush_get_option_list('ignored-modules', array());
@@ -572,9 +577,9 @@ abstract class DrupalBoot extends BaseBoot {
    * A Drupal 8+ kernel that threw while it booted.
    *
    * Drops the output buffer the boot class opened (Drupal may have printed
-   * into it) and sets the exception as this command's error, so the
-   * bootstrap stops there and a calling Drush logs its class, message and
-   * place.
+   * into it), records the failure for the phase's command file search, and
+   * sets the exception as this command's error, so the bootstrap stops there
+   * and a calling Drush logs its class, message and place.
    *
    * @param \Exception|\Throwable $e
    *
@@ -585,6 +590,7 @@ abstract class DrupalBoot extends BaseBoot {
     if (!drush_get_context('DRUSH_QUIET', FALSE)) {
       ob_end_clean();
     }
+    drush_set_context('DRUSH_DRUPAL_KERNEL_BOOT_FAILED', TRUE);
     return drush_set_error('DRUSH_DRUPAL_KERNEL_BOOT', dt('The Drupal kernel did not boot: !class: !message in !file on line !line', array(
       '!class' => get_class($e),
       '!message' => $e->getMessage(),
