@@ -853,7 +853,8 @@ function drush_core_requirements() {
 
   $min_severity = drush_get_option('severity', -1);
   foreach($requirements as $key => $info) {
-    $severity = array_key_exists('severity', $info) ? $info['severity'] : -1;
+    // A severity set to NULL counts as none (Drupal 12's unicode check).
+    $severity = isset($info['severity']) ? $info['severity'] : -1;
     // Drupal 12 reports a RequirementSeverity case, not its integer.
     if (is_object($severity) && isset($severity->value)) {
       $severity = $severity->value;
@@ -865,6 +866,10 @@ function drush_core_requirements() {
     }
     if (isset($requirements[$key]['description'])) {
       $requirements[$key]['description'] = drush_render($requirements[$key]['description']);
+    }
+    // Drupal 12's database check gives its value as a render array.
+    if (isset($requirements[$key]['value']) && is_array($requirements[$key]['value'])) {
+      $requirements[$key]['value'] = drush_render($requirements[$key]['value']);
     }
   }
   return $requirements;
