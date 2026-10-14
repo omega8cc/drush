@@ -826,7 +826,15 @@ function drush_core_requirements() {
   drupal_load_updates();
 
   drush_include_engine('drupal', 'environment');
-  $requirements = drush_module_invoke_all('requirements', 'runtime');
+  if (drush_drupal_major_version() >= 11) {
+    // From Drupal 11.3 most runtime requirements come from
+    // hook_runtime_requirements(), and Drupal 12 has no others: the status
+    // report's own list carries both kinds, altered as the report shows them.
+    $requirements = \Drupal::service('system.manager')->listRequirements();
+  }
+  else {
+    $requirements = drush_module_invoke_all('requirements', 'runtime');
+  }
   // If a module uses "$requirements[] = " instead of
   // "$requirements['label'] = ", then build a label from
   // the title.
