@@ -156,12 +156,24 @@ class DrupalBoot12 extends DrupalBoot {
     if (!drush_get_context('DRUSH_QUIET', FALSE)) {
       ob_start();
     }
-    $this->kernel->boot();
-    if (method_exists($this->kernel, 'preHandle')) {
-      $this->kernel->preHandle($this->request);
+    // A codebase that cannot boot (code its PHP cannot parse, a service its
+    // definitions cannot build) throws here, where Drupal's own handler would
+    // print the message and exit: a calling Drush then reads no more than
+    // "terminated abnormally". Named as this command's error instead.
+    try {
+      $this->kernel->boot();
+      if (method_exists($this->kernel, 'preHandle')) {
+        $this->kernel->preHandle($this->request);
+      }
+      else {
+        $this->kernel->prepareLegacyRequest($this->request);
+      }
     }
-    else {
-      $this->kernel->prepareLegacyRequest($this->request);
+    catch (\Throwable $e) {
+      return $this->kernel_boot_failed($e);
+    }
+    catch (\Exception $e) {
+      return $this->kernel_boot_failed($e);
     }
     if (!drush_get_context('DRUSH_QUIET', FALSE)) {
       ob_end_clean();

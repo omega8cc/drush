@@ -568,6 +568,31 @@ abstract class DrupalBoot extends BaseBoot {
    * Log into the bootstrapped Drupal site with a specific
    * username or user id.
    */
+  /**
+   * A Drupal 8+ kernel that threw while it booted.
+   *
+   * Drops the output buffer the boot class opened (Drupal may have printed
+   * into it) and sets the exception as this command's error, so the
+   * bootstrap stops there and a calling Drush logs its class, message and
+   * place.
+   *
+   * @param \Exception|\Throwable $e
+   *
+   * @return bool
+   *   FALSE, as drush_set_error() returns.
+   */
+  function kernel_boot_failed($e) {
+    if (!drush_get_context('DRUSH_QUIET', FALSE)) {
+      ob_end_clean();
+    }
+    return drush_set_error('DRUSH_DRUPAL_KERNEL_BOOT', dt('The Drupal kernel did not boot: !class: !message in !file on line !line', array(
+      '!class' => get_class($e),
+      '!message' => $e->getMessage(),
+      '!file' => $e->getFile(),
+      '!line' => $e->getLine(),
+    )));
+  }
+
   function bootstrap_drupal_login() {
     $uid_or_name = drush_set_context('DRUSH_USER', drush_get_option('user', 0));
     $userversion = drush_user_get_class();
