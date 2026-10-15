@@ -124,12 +124,27 @@ class DrupalBoot10 extends DrupalBoot {
     $classloader = drush_drupal_load_autoloader(DRUPAL_ROOT);
     // @todo - use Request::create() and then no need to set PHP superglobals
     $kernelClass = new \ReflectionClass('\Drupal\Core\DrupalKernel');
-    if ($kernelClass->hasMethod('addServiceModifier')) {
-      $this->kernel = DrupalKernel::createFromRequest($this->request, $classloader, 'prod');
+    // createFromRequest() installs Drupal's exception handler before it loads
+    // the site's settings. Drush's goes in front of it whether the call
+    // returns or throws (a settings file that does not parse), so a throwable
+    // that ends this process is named (drupal_exception_handler()).
+    try {
+      if ($kernelClass->hasMethod('addServiceModifier')) {
+        $this->kernel = DrupalKernel::createFromRequest($this->request, $classloader, 'prod');
+      }
+      else {
+        $this->kernel = DrushDrupalKernel::createFromRequest($this->request, $classloader, 'prod');
+      }
     }
-    else {
-      $this->kernel = DrushDrupalKernel::createFromRequest($this->request, $classloader, 'prod');
+    catch (\Throwable $e) {
+      $this->drupal_exception_handler_wrap();
+      throw $e;
     }
+    catch (\Exception $e) {
+      $this->drupal_exception_handler_wrap();
+      throw $e;
+    }
+    $this->drupal_exception_handler_wrap();
     // @see Drush\Drupal\DrupalKernel::addServiceModifier()
     if (method_exists($this->kernel, 'addServiceModifier')) {
       $this->kernel->addServiceModifier(new DrushServiceModifier());

@@ -6,6 +6,13 @@ use Drush\Log\LogLevel;
 
 abstract class DrupalBoot extends BaseBoot {
 
+  /**
+   * The exception handler Drupal installed, behind drupal_exception_handler().
+   *
+   * @var callable|null
+   */
+  protected $drupal_exception_handler_previous;
+
   function __construct() {
   }
 
@@ -570,10 +577,6 @@ abstract class DrupalBoot extends BaseBoot {
   }
 
   /**
-   * Log into the bootstrapped Drupal site with a specific
-   * username or user id.
-   */
-  /**
    * A Drupal 8+ kernel that threw while it booted.
    *
    * Drops the output buffer the boot class opened (Drupal may have printed
@@ -599,6 +602,53 @@ abstract class DrupalBoot extends BaseBoot {
     )));
   }
 
+  /**
+   * Put drupal_exception_handler() in front of Drupal's exception handler.
+   *
+   * Drupal 8+ installs its handler in DrupalKernel::bootEnvironment(), run
+   * from createFromRequest(). Where none is installed (Drupal threw before
+   * it got that far), PHP's own report of the uncaught throwable stays, and
+   * drush_shutdown() already names that one through error_get_last().
+   */
+  function drupal_exception_handler_wrap() {
+    if (isset($this->drupal_exception_handler_previous)) {
+      return;
+    }
+    $previous = set_exception_handler(array($this, 'drupal_exception_handler'));
+    if (empty($previous)) {
+      restore_exception_handler();
+      return;
+    }
+    $this->drupal_exception_handler_previous = $previous;
+  }
+
+  /**
+   * Exception handler: a throwable nobody caught, Drupal 8 and later.
+   *
+   * Drupal's handler logs it, prints it as plain text and exits, which leaves
+   * error_get_last() empty, so drush_shutdown() could report no more than
+   * "terminated abnormally" (and a calling Drush, no more than that) whenever
+   * Drupal's logger did not reach Drush: before the container exists, or
+   * when a logger ahead of Drush's own threw. The throwable is recorded for
+   * drush_shutdown(), then Drupal's handler runs as before.
+   *
+   * @param \Exception|\Throwable $e
+   */
+  function drupal_exception_handler($e) {
+    drush_set_context('DRUSH_UNCAUGHT_THROWABLE', array(
+      'message' => 'Uncaught ' . get_class($e) . ': ' . $e->getMessage(),
+      'file' => $e->getFile(),
+      'line' => $e->getLine(),
+    ));
+    if (is_callable($this->drupal_exception_handler_previous)) {
+      call_user_func($this->drupal_exception_handler_previous, $e);
+    }
+  }
+
+  /**
+   * Log into the bootstrapped Drupal site with a specific
+   * username or user id.
+   */
   function bootstrap_drupal_login() {
     $uid_or_name = drush_set_context('DRUSH_USER', drush_get_option('user', 0));
     $userversion = drush_user_get_class();
