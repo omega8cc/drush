@@ -76,7 +76,23 @@ class DrupalBoot7 extends DrupalBoot {
   }
 
   function bootstrap_drupal_configuration() {
-    drupal_bootstrap(DRUPAL_BOOTSTRAP_CONFIGURATION);
+    // A throwable from settings.php or a file it includes reaches Drupal's
+    // own exception handler before includes/cache.inc is loaded, and that
+    // handler then dies building the maintenance theme (cache_get() is
+    // undefined): neither its report nor error_get_last() names the cause.
+    // Drush's handler goes in front of Drupal's, as for Drupal 8 and later.
+    try {
+      drupal_bootstrap(DRUPAL_BOOTSTRAP_CONFIGURATION);
+    }
+    catch (\Throwable $e) {
+      $this->drupal_exception_handler_wrap();
+      throw $e;
+    }
+    catch (\Exception $e) {
+      $this->drupal_exception_handler_wrap();
+      throw $e;
+    }
+    $this->drupal_exception_handler_wrap();
 
     // Unset drupal error handler and restore drush's one.
     restore_error_handler();

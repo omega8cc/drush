@@ -606,9 +606,10 @@ abstract class DrupalBoot extends BaseBoot {
    * Put drupal_exception_handler() in front of Drupal's exception handler.
    *
    * Drupal 8+ installs its handler in DrupalKernel::bootEnvironment(), run
-   * from createFromRequest(). Where none is installed (Drupal threw before
-   * it got that far), PHP's own report of the uncaught throwable stays, and
-   * drush_shutdown() already names that one through error_get_last().
+   * from createFromRequest(); Drupal 7 at the start of its configuration
+   * phase. Where none is installed (Drupal threw before it got that far),
+   * PHP's own report of the uncaught throwable stays, and drush_shutdown()
+   * already names that one through error_get_last().
    */
   function drupal_exception_handler_wrap() {
     if (isset($this->drupal_exception_handler_previous)) {
@@ -623,14 +624,16 @@ abstract class DrupalBoot extends BaseBoot {
   }
 
   /**
-   * Exception handler: a throwable nobody caught, Drupal 8 and later.
+   * Exception handler: a throwable nobody caught, Drupal 7 and later.
    *
    * Drupal's handler logs it, prints it as plain text and exits, which leaves
    * error_get_last() empty, so drush_shutdown() could report no more than
    * "terminated abnormally" (and a calling Drush, no more than that) whenever
    * Drupal's logger did not reach Drush: before the container exists, or
-   * when a logger ahead of Drush's own threw. The throwable is recorded for
-   * drush_shutdown(), then Drupal's handler runs as before.
+   * when a logger ahead of Drush's own threw. Drupal 7's handler can also
+   * die itself, early in the bootstrap, and leave only its own error there.
+   * The throwable is recorded for drush_shutdown(), then Drupal's handler
+   * runs as before.
    *
    * @param \Exception|\Throwable $e
    */

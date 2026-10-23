@@ -797,9 +797,10 @@ function drush_shutdown() {
         $php_error_message = "\n" . dt('Error: !message in !file, line !line', array('!message' => $error['message'], '!file' => $error['file'], '!line' => $error['line']));
       }
     }
-    // A throwable nobody caught that Drupal 8+'s own exception handler took
-    // (it prints the message and exits) is not in error_get_last(); the
-    // handler Drush puts in front of Drupal's recorded it.
+    // A throwable nobody caught that Drupal 7+'s own exception handler took
+    // (it prints the message and exits, or on Drupal 7 can die itself) is not
+    // in error_get_last(); the handler Drush puts in front of Drupal's
+    // recorded it.
     // @see \Drush\Boot\DrupalBoot::drupal_exception_handler()
     if ($uncaught = drush_get_context('DRUSH_UNCAUGHT_THROWABLE')) {
       $php_error_message .= "\n" . dt('Error: !message in !file, line !line', array('!message' => $uncaught['message'], '!file' => $uncaught['file'], '!line' => $uncaught['line']));
