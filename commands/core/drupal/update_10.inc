@@ -19,6 +19,31 @@ use Drupal\Core\Entity\EntityStorageException;
  */
 require_once DRUSH_DRUPAL_CORE . '/includes/update.inc';
 
+if (!function_exists('_drush_update_mark_future_equivalents')) {
+  /**
+   * Records the future updates an update's MarkFutureUpdateEquivalent
+   * attributes name, as core's DatabaseUpdate::doOne() does before it runs
+   * the update. A core or PHP without attributes records nothing.
+   */
+  function _drush_update_mark_future_equivalents($registry, $module, $number, $function) {
+    $class = 'Drupal\\Core\\Update\\Attribute\\MarkFutureUpdateEquivalent';
+    if (PHP_VERSION_ID < 80000 || !class_exists($class) || !method_exists($registry, 'markFutureUpdateEquivalent')) {
+      return;
+    }
+    $reflection = new ReflectionFunction($function);
+    foreach ($reflection->getAttributes($class) as $attribute) {
+      $instance = $attribute->newInstance();
+      $registry->markFutureUpdateEquivalent($instance->futureUpdateNumber, $instance->futureVersionString, $module, $number);
+      drush_log(dt('@function marks @module update @future (@version) as done by it', array(
+        '@function' => $function,
+        '@module' => $module,
+        '@future' => $instance->futureUpdateNumber,
+        '@version' => $instance->futureVersionString,
+      )));
+    }
+  }
+}
+
 /**
  * Perform one update and store the results which will later be displayed on
  * the finished page.
@@ -56,12 +81,26 @@ function drush_update_do_one($module, $number, $dependency_map,  &$context) {
   \Drupal::moduleHandler()->loadInclude($module, 'install');
 
   $ret = array();
-  if (function_exists($function)) {
+  // An update that an earlier one made unnecessary (Drupal 10.3 and later keep
+  // these as equivalent updates) is skipped, as core's own runner skips it.
+  $registry = \Drupal::service('update.update_hook_registry');
+  $equivalent = method_exists($registry, 'getEquivalentUpdate') ? $registry->getEquivalentUpdate($module, $number) : NULL;
+  if (is_object($equivalent) && method_exists($equivalent, 'toSkipMessage')) {
+    $ret['results']['query'] = $equivalent->toSkipMessage();
+    $ret['results']['success'] = TRUE;
+    $context['sandbox']['#finished'] = TRUE;
+    drush_log(dt('Skipping @function: @message', array('@function' => $function, '@message' => (string) $ret['results']['query'])));
+  }
+  elseif (function_exists($function)) {
     try {
       if ($context['log']) {
         Database::startLog($function);
       }
 
+      // Drupal 11.5 and later: an update may name a future update it makes
+      // unnecessary (the MarkFutureUpdateEquivalent attribute); core's runner
+      // records that before it runs the update, and so does this one.
+      _drush_update_mark_future_equivalents($registry, $module, $number, $function);
       drush_log("Executing " . $function);
       $ret['results']['query'] = $function($context['sandbox']);
       $ret['results']['success'] = TRUE;
