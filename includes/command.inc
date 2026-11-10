@@ -1104,14 +1104,20 @@ function drush_process_bootstrap_to_first_arg(&$arguments) {
  */
 function drush_get_commands($reset = FALSE) {
   static $commands = array();
+  static $built_on_backdrop = NULL;
 
   if ($reset) {
     $commands = array();
     return;
   }
-  elseif ($commands) {
+  // The table differs on a Backdrop root (see the alias loop below), and a
+  // table built before the root was selected must not outlive that choice.
+  $on_backdrop = _drush_commands_on_backdrop_root();
+  if ($commands && $built_on_backdrop === $on_backdrop) {
     return $commands;
   }
+  $commands = array();
+  $built_on_backdrop = $on_backdrop;
 
   $list = drush_commandfile_list();
   foreach ($list as $commandfile => $path) {
@@ -1149,12 +1155,38 @@ function drush_get_commands($reset = FALSE) {
     // using the alias as a key
     if (isset($command['aliases']) && count($command['aliases'])) {
       foreach ($command['aliases'] as $alias) {
+        // The Backdrop Drush extension names its commands backdrop-* and
+        // aliases some of them to names Drush core already answers to
+        // (config-get, config-set, cget, cset, state-get, state-set,
+        // version). Those take core's commands over only on a Backdrop root,
+        // where the extension runs them; on any other root they die on
+        // BACKDROP_ROOT, so core's command keeps its name there.
+        if (!$on_backdrop && isset($command['command'], $commands[$alias]['command'])
+          && strpos($command['command'], 'backdrop-') === 0
+          && $commands[$alias]['command'] !== $command['command']) {
+          continue;
+        }
         $commands[$alias] = $command;
         $commands[$alias]['is_alias'] = TRUE;
       }
     }
   }
   return $commands;
+}
+
+/**
+ * Whether the selected root is a Backdrop site, run by the Backdrop Drush
+ * extension's bootstrap class.
+ *
+ * @return bool
+ */
+function _drush_commands_on_backdrop_root() {
+  $root = drush_get_context('DRUSH_SELECTED_DRUPAL_ROOT', '');
+  if (empty($root)) {
+    return FALSE;
+  }
+  $bootstrap = drush_get_bootstrap_object();
+  return is_object($bootstrap) && is_a($bootstrap, 'Drush\Boot\BackdropBoot');
 }
 
 /**
