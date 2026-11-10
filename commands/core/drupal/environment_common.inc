@@ -267,7 +267,12 @@ function drush_get_themes($include_hidden = TRUE) {
  *  Array of theme names.
  */
 function drush_theme_enable($themes) {
-  \Drupal::service('theme_handler')->install($themes);
+  // Current cores have no ThemeHandler::install(); the theme_installer
+  // service installs themes on every Drupal 8 and newer core.
+  \Drupal::service('theme_installer')->install($themes);
+  // Our logger got blown away during the container rebuild above.
+  $boot = drush_select_bootstrap_class();
+  $boot->add_logger();
 }
 
 /**
