@@ -16,6 +16,7 @@ function drush_drupal_load_autoloader($drupal_root) {
 
   if (!$autoloader) {
     $autoloader = require $drupal_root .'/autoload.php';
+    $platform_loader = $autoloader;
     if ($autoloader === TRUE) {
       // The autoloader was already require(). Assume that Drush and Drupal share an autoloader per
       // "Point autoload.php to the proper vendor directory" - https://www.drupal.org/node/2404989
@@ -32,8 +33,53 @@ function drush_drupal_load_autoloader($drupal_root) {
     // authority over our own prefix with a loader that serves Drush\*
     // strictly from this Drush's lib/ and stays ahead of the platform's.
     spl_autoload_register('_drush_own_prefix_autoload', TRUE, TRUE);
+    // Symfony Console's Input classes the same way, with one difference:
+    // they come from whichever loader served them before the platform's
+    // (provision's, then Drush's own), never from the platform. The adapters
+    // Drush builds implement the untyped Input interface those older
+    // consoles declare; Drupal 10 and newer ship one with typed returns, and
+    // a Drush that loads it dies declaring DrushInputAdapter. A locked
+    // platform hides its Input folder, so the platform never answered while
+    // the lock held; a task that opens it for a few seconds to run the
+    // codebase's own Drush let every Drush 8 run on the platform meet the
+    // typed interface instead.
+    if (is_object($platform_loader)) {
+      _drush_console_input_autoload(NULL, $platform_loader);
+      spl_autoload_register('_drush_console_input_autoload', TRUE, TRUE);
+    }
   }
   return $autoloader;
+}
+
+/**
+ * Serve Symfony\Component\Console\Input\* from every autoloader but the
+ * platform's, as a locked platform does by hiding its own copies. A class no
+ * other loader has falls through to the normal chain.
+ *
+ * @param string|null $class
+ *   The class to load.
+ * @param object|null $set_platform
+ *   The platform's Composer loader, recorded once before registration.
+ */
+function _drush_console_input_autoload($class, $set_platform = NULL) {
+  static $platform = NULL;
+  if ($set_platform !== NULL) {
+    $platform = $set_platform;
+    return;
+  }
+  if ($platform === NULL || strpos($class, 'Symfony\\Component\\Console\\Input\\') !== 0) {
+    return;
+  }
+  foreach (spl_autoload_functions() as $loader) {
+    if ($loader === '_drush_console_input_autoload'
+      || (is_array($loader) && isset($loader[0]) && $loader[0] === $platform)) {
+      continue;
+    }
+    call_user_func($loader, $class);
+    if (class_exists($class, FALSE) || interface_exists($class, FALSE)) {
+      return;
+    }
+  }
 }
 
 /**

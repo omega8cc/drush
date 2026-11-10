@@ -248,7 +248,7 @@ function annotationcommand_adapter_process_command() {
 
   // DrushInputAdapter12 on Drupal 12, the base class before it.
   $input = drush_get_class('Drush\Command\DrushInputAdapter', array($args, annotationcommand_adapter_get_options($command), $command['command']));
-  $output = new DrushOutputAdapter();
+  $output = drush_output_adapter();
   annotationcommand_adapter_input($input);
   $annotationData = $command['annotations'];
   $commandData = new CommandData(

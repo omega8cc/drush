@@ -5,6 +5,7 @@ use Webmozart\PathUtil\Path;
 use Consolidation\AnnotatedCommand\AnnotationData;
 use Drush\Command\DrushInputAdapter;
 use Drush\Command\DrushOutputAdapter;
+use Drush\Command\DrushOutputAdapterVoid;
 use Consolidation\AnnotatedCommand\CommandData;
 
 /**
@@ -244,6 +245,18 @@ function drush_command() {
 }
 
 /**
+ * The output adapter for this PHP: from 7.1 one whose doWrite() returns void,
+ * which extends the Output of any Symfony Console (a Drupal 11 or 12
+ * platform's stock one declares the void); the untyped one before.
+ */
+function drush_output_adapter() {
+  if (PHP_VERSION_ID >= 70100) {
+    return new DrushOutputAdapterVoid();
+  }
+  return new DrushOutputAdapter();
+}
+
+/**
  * Invoke Drush API calls, including all hooks.
  *
  * This is an internal function; it is called from drush_dispatch via
@@ -352,7 +365,7 @@ function _drush_invoke_hooks($command, $args) {
 
   // DrushInputAdapter12 on Drupal 12, the base class before it.
   $input = drush_get_class('Drush\Command\DrushInputAdapter', array($args, annotationcommand_adapter_get_options($command), $command['command']));
-  $output = new DrushOutputAdapter();
+  $output = drush_output_adapter();
   $commandData = new CommandData(
     $annotationData,
     $input,

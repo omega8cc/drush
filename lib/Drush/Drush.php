@@ -213,7 +213,7 @@ class Drush
     public static function output()
     {
         if (!static::$output) {
-            static::$output = new DrushOutputAdapter();
+            static::$output = drush_output_adapter();
         }
 
         return static::$output;
